@@ -12,8 +12,7 @@ use crate::{models, types::*};
 #[allow(clippy::large_enum_variant)]
 pub enum GetRecommendedWordsForUserResponse {
     /// OK
-    Status200_OK
-    (models::RecommendedWords)
+    Status200_OK(models::RecommendedWords),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -21,10 +20,8 @@ pub enum GetRecommendedWordsForUserResponse {
 #[allow(clippy::large_enum_variant)]
 pub enum GetUsersWithSimilarWordsResponse {
     /// OK
-    Status200_OK
-    (models::SimilarUsers)
+    Status200_OK(models::SimilarUsers),
 }
-
 
 /// Similar
 #[async_trait]
@@ -34,21 +31,21 @@ pub trait Similar {
     ///
     /// GetRecommendedWordsForUser - GET /api/similar/{userId}/recommend
     async fn get_recommended_words_for_user(
-    &self,
-    method: Method,
-    host: Host,
-    cookies: CookieJar,
-      path_params: models::GetRecommendedWordsForUserPathParams,
+        &self,
+        method: Method,
+        host: Host,
+        cookies: CookieJar,
+        path_params: models::GetRecommendedWordsForUserPathParams,
     ) -> Result<GetRecommendedWordsForUserResponse, String>;
 
     /// 似たような者を探す.
     ///
     /// GetUsersWithSimilarWords - GET /api/similar/{userId}
     async fn get_users_with_similar_words(
-    &self,
-    method: Method,
-    host: Host,
-    cookies: CookieJar,
-      path_params: models::GetUsersWithSimilarWordsPathParams,
+        &self,
+        method: Method,
+        host: Host,
+        cookies: CookieJar,
+        path_params: models::GetUsersWithSimilarWordsPathParams,
     ) -> Result<GetUsersWithSimilarWordsResponse, String>;
 }
