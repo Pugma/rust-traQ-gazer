@@ -12,8 +12,7 @@ use crate::{models, types::*};
 #[allow(clippy::large_enum_variant)]
 pub enum StampsGetResponse {
     /// Successful retrieval
-    Status200_SuccessfulRetrieval
-    (models::Stamps)
+    Status200_SuccessfulRetrieval(models::Stamps),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -21,12 +20,10 @@ pub enum StampsGetResponse {
 #[allow(clippy::large_enum_variant)]
 pub enum StampsPostResponse {
     /// Successful registration
-    Status200_SuccessfulRegistration
-    ,
+    Status200_SuccessfulRegistration,
     /// Invalid input
-    Status400_InvalidInput
+    Status400_InvalidInput,
 }
-
 
 /// Stamps
 #[async_trait]
@@ -36,22 +33,22 @@ pub trait Stamps {
     ///
     /// StampsGet - GET /api/stamps
     async fn stamps_get(
-    &self,
-    method: Method,
-    host: Host,
-    cookies: CookieJar,
-      query_params: models::StampsGetQueryParams,
+        &self,
+        method: Method,
+        host: Host,
+        cookies: CookieJar,
+        query_params: models::StampsGetQueryParams,
     ) -> Result<StampsGetResponse, String>;
 
     /// スタンプの登録.
     ///
     /// StampsPost - POST /api/stamps
     async fn stamps_post(
-    &self,
-    method: Method,
-    host: Host,
-    cookies: CookieJar,
-      header_params: models::StampsPostHeaderParams,
-            body: models::NewStamp,
+        &self,
+        method: Method,
+        host: Host,
+        cookies: CookieJar,
+        header_params: models::StampsPostHeaderParams,
+        body: models::NewStamp,
     ) -> Result<StampsPostResponse, String>;
 }
