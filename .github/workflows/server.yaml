@@ -1,0 +1,40 @@
+name: Server
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - server/**/*
+      - .github/workflows/server.yaml
+  pull_request:
+    paths:
+      - server/**/*
+      - .github/workflows/server.yaml
+
+jobs:
+  clippy:
+    name: Cargo clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: server
+      - name: clippy
+        run: cargo clippy --package rust-traQ-gazer --no-deps -- -D warnings
+        working-directory: ./server/
+  
+  build:
+    name: build check
+    needs: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: server
+      - name: build files
+        run: cargo build --release
+        working-directory: ./server/
+  
