@@ -1,0 +1,14 @@
+[package]
+name = "rust-traQ-gazer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.89"
+sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "time"]}
+tokio = {version = "1.40.0", features = ["full"]}
+openapi = {path = "../apis"}
+axum = "0.7.6"
+axum-extra = "0.9.4"
+uuid = {version = "1.10.0", features = ["v4"]}
+traq = "0.1.5"

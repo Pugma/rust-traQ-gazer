@@ -1,0 +1,507 @@
+openapi: 3.1.3
+
+info:
+  title: traQ gazer
+  description: |-
+    部内連絡ツール traQ において登録された単語の通知を行うサービス
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+tags:
+  - name: words
+    description: 単語の閲覧・追加・削除
+  - name: stamps
+    description: スタンプの閲覧・追加・削除
+  - name: trend
+    description: トレンドのためのAPI集
+  - name: similar
+    description: おすすめのためのAPI集
+
+paths:
+  /words:
+    get:
+      tags:
+        - words
+      summary: 全ユーザーの登録単語の閲覧
+      description: 自分に限らず全ユーザーの登録している単語を見ることができる。クエリパラメータで特定の単語の登録者を見ることも可能
+      parameters:
+        - name: word
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "デジタル創作同好会traP"
+          style: form
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Words'
+    post:
+      tags:
+        - words
+      summary: 単語の登録
+      description: 同時に通知の設定もする
+      parameters:
+        - $ref: '#/components/parameters/NeoShowcase'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewWord'
+      responses:
+        '200':
+          description: Successful registration
+        '400':
+          description: Invalid input
+
+  /words/{wordId}:
+    parameters:
+      - name: wordId
+        in: path
+        description: 単語の uuid で指定する
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: '#/components/parameters/NeoShowcase'
+    put:
+      tags:
+        - words
+      summary: 通知除外者の設定
+      description: 通知しない投稿者を指定する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcludedUsers'
+      responses:
+        '200':
+          description: Successful edit
+        '404':
+          description: Not found
+    delete:
+      tags:
+        - words
+      summary: 単語の削除
+      description: 自分が登録した単語を削除できる。ない場合は404
+      responses:
+        '200':
+          description: Successful deletion
+        '404':
+          description: Not found
+
+  /words/me:
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
+    get:
+      tags:
+        - words
+      summary: 自分の登録単語の閲覧
+      description: 自分が登録している単語を、通知情報とともに閲覧する
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyWords'
+        '400':
+          description: Invalid input
+  
+  /words/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        description: traP ID で指定する
+        required: true
+        schema:
+          type: string
+          example: "trap"
+    get:
+      tags:
+        - words
+      summary: 指定したユーザーが登録している単語を閲覧
+      description: 得られるのは文字列だけ。通知設定や uuid 、登録日時は得られない
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Words'
+        '404':
+          description: Not found
+
+  /stamps:
+    get:
+      tags:
+        - stamps
+      summary: 全ユーザーの登録スタンプの閲覧
+      description: 自分に限らず全ユーザーの登録しているスタンプを見ることができる。クエリパラメータで特定のスタンプの登録者を見ることも可能
+      parameters:
+        - name: word
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "デジタル創作同好会traP"
+          style: form
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stamps'
+    post:
+      tags:
+        - stamps
+      summary: スタンプの登録
+      description: 同時に通知の設定もする
+      parameters:
+        - $ref: '#/components/parameters/NeoShowcase'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewStamp'
+      responses:
+        '200':
+          description: Successful registration
+        '400':
+          description: Invalid input
+  
+  /trend/day/today:
+    get:
+      tags:
+        - trend
+      summary: 今日のトレンド
+      description: 今日最も追加されたwordの取得
+      operationId: getTodayTrendingWords
+      parameters:
+        - name: limit
+          in: query
+          description: 返すwordの数
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingWords'
+  /trend/day/{day}:
+    parameters:
+      - name: day
+        in: path
+        description: Specific day in the format "YYYY-MM-DD"
+        required: true
+        schema:
+          type: string
+          example: 
+            - "YYYY-MM-DD"
+          
+    get:
+      tags:
+        - trend
+      summary: ある日のトレンド
+      description: 特定の日に最も追加されたwordの取得
+      operationId: getTrendingWordsForDay
+      parameters:
+        - name: limit
+          in: query
+          description: 返すwordの数
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingWords'
+  /trend/month/{month}:
+    parameters:
+      - name: month
+        in: path
+        description: Specific month in the format "YYYY-MM"
+        required: true
+        schema:
+          type: string
+          example: 
+            - "YYYY-MM"
+          
+    get:
+      tags:
+        - trend
+      summary: ある月のトレンド
+      description: 特定の月に最も追加されたwordの取得
+      operationId: getTrendingWordsForMonth
+      parameters:
+        - name: limit
+          in: query
+          description: 返すwordの数
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingWords'
+  /trend/year/{year}:
+    parameters:
+      - name: year
+        in: path
+        description: Specific year in the format "YYYY"
+        required: true
+        schema:
+          type: string
+          example: 
+            - "YYYY"
+    get:
+      tags:
+        - trend
+      summary: ある年のトレンド
+      description: 特定の年に最も追加されたwordの取得
+      operationId: getTrendingWordsForYear
+      parameters:
+        - name: limit
+          in: query
+          description: 返すwordの数
+          required: false
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrendingWords'
+  /similar/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        description: ID of the user
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - similar
+      summary: 似たような者を探す
+      description: 特定のuserと同じような単語を登録しているuserの取得
+      operationId: getUsersWithSimilarWords
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimilarUsers'
+  /similar/{userId}/recommend:
+    parameters:
+      - name: userId
+        in: path
+        description: ID of the user
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - similar
+      summary: おすすめの単語を出す
+      description: 特定のuserと同じような単語を登録しているuserが登録している単語の取得
+      operationId: getRecommendedWordsForUser
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommendedWords'
+
+components:
+  schemas:
+    NewWord:
+      type: object
+      description: sessionからuserIdを取る
+      properties:
+        word:
+          type: string
+        excludedUsers:
+          $ref: '#/components/schemas/ExcludedUsers'
+      required:
+        - word
+        - excludedUsers
+    ExcludedUsers:
+      type: array
+      items:
+        $ref: '#/components/schemas/ExcludedUser'
+    ExcludedUser:
+      type: object
+      properties:
+        trapId:
+          type: string
+          example: "trap"
+      required:
+        - trapId
+    
+    MyWords:
+      type: array
+      items:
+        $ref: '#/components/schemas/MyWord'
+    MyWord:
+      type: object
+      properties:
+        word:
+          type: string
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        excludedUsers:
+          $ref: '#/components/schemas/ExcludedUsers'
+      required:
+        - word
+        - id
+        - time
+        - excludedUsers
+    
+    Words:
+      type: array
+      items:
+        $ref: '#/components/schemas/Word'
+    Word:
+      type: object
+      properties:
+        trapId:
+          type: string
+        word:
+          type: string
+      required:
+        - trapId
+        - word
+    
+    NewStamp:
+      type: object
+      description: sessionからuserIdを取る
+      properties:
+        stamp:
+          type: string
+        excludedUsers:
+          $ref: '#/components/schemas/ExcludedUsers'
+      required:
+        - stamp
+        - excludedUsers
+    
+    MyStamps:
+      type: array
+      items:
+        $ref: '#/components/schemas/MyStamp'
+    MyStamp:
+      type: object
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+          format: uuid
+        time:
+          type: string
+          format: date-time
+        excludedUsers:
+          $ref: '#/components/schemas/ExcludedUsers'
+      required:
+        - name
+        - id
+        - time
+        - excludedUsers
+    
+    Stamps:
+      type: array
+      items:
+        $ref: '#/components/schemas/Word'
+    Stamp:
+      type: object
+      properties:
+        trapId:
+          type: string
+        name:
+          type: string
+      required:
+        - trapId
+        - name
+
+    TrendingWords:
+      type: array
+      items:
+        $ref: '#/components/schemas/TrendingWord'
+    TrendingWord:
+      type: object
+      properties:
+        number:
+          type: integer
+          example: 1
+        word:
+          type: string
+          example: "example"
+      required:
+        - number
+        - word
+    SimilarUsers:
+      type: array
+      items:
+        $ref: '#/components/schemas/SimilarUser'
+    SimilarUser:
+      type: object
+      properties:
+        trapId:
+          type: string
+          example: "trap"
+      required:
+        - trapId
+    RecommendedWords:
+      type: array
+      items:
+        $ref: '#/components/schemas/RecommendedWord'
+    RecommendedWord:
+      type: object
+      properties:
+        number:
+          type: integer
+          example: 1
+        word:
+          type: string
+          example: "example"
+      required:
+        - number
+        - word
+  parameters:
+    NeoShowcase:
+      in: header
+      name: X-Forwarded-User
+      description: traP ID を取得するためのヘッダー
+      schema:
+        type: string
+      required: true
