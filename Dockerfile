@@ -3,7 +3,7 @@ FROM rust:1.81 AS builder
 
 WORKDIR /app/server
 
-RUN --mount=type=bind,target=.,source=./server \
+RUN --mount=type=bind,target=.,source=./server,rw \
     --mount=type=cache,target=/usr/local/cargo/registry \
     cargo fetch
 
