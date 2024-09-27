@@ -1,0 +1,13 @@
+.gitignore
+Cargo.toml
+README.md
+src/apis/mod.rs
+src/apis/similar.rs
+src/apis/stamps.rs
+src/apis/trend.rs
+src/apis/words.rs
+src/header.rs
+src/lib.rs
+src/models.rs
+src/server/mod.rs
+src/types.rs
