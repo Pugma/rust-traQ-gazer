@@ -5,8 +5,8 @@ use axum::http::Method;
 use axum_extra::extract::CookieJar;
 use openapi::{
     apis::words::{
-        Words, WordsGetResponse, WordsMeGetResponse, WordsPostResponse, WordsUserIdGetResponse,
-        WordsWordIdDeleteResponse, WordsWordIdPutResponse,
+        Words, WordsGetResponse, WordsMeGetResponse, WordsPostResponse,
+        WordsUsersUserIdGetResponse, WordsWordIdDeleteResponse, WordsWordIdPutResponse,
     },
     models,
 };
@@ -67,18 +67,20 @@ impl Words for Handler {
         }
     }
 
-    async fn words_user_id_get(
+    async fn words_users_user_id_get(
         &self,
         _method: Method,
         _host: Host,
         _cookies: CookieJar,
-        path_params: models::WordsUserIdGetPathParams,
-    ) -> Result<WordsUserIdGetResponse, String> {
+        path_params: models::WordsUsersUserIdGetPathParams,
+    ) -> Result<WordsUsersUserIdGetResponse, String> {
         let result = self.repo.get_by_user(path_params.user_id).await;
 
         match result {
-            Ok(words) => Ok(WordsUserIdGetResponse::Status200_SuccessfulRetrieval(words)),
-            Err(_) => Ok(WordsUserIdGetResponse::Status404_NotFound),
+            Ok(words) => Ok(WordsUsersUserIdGetResponse::Status200_SuccessfulRetrieval(
+                words,
+            )),
+            Err(_) => Ok(WordsUsersUserIdGetResponse::Status404_NotFound),
         }
     }
 

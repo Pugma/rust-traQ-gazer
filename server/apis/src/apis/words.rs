@@ -38,7 +38,7 @@ pub enum WordsPostResponse {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[must_use]
 #[allow(clippy::large_enum_variant)]
-pub enum WordsUserIdGetResponse {
+pub enum WordsUsersUserIdGetResponse {
     /// Successful retrieval
     Status200_SuccessfulRetrieval(models::Words),
     /// Not found
@@ -105,14 +105,14 @@ pub trait Words {
 
     /// 指定したユーザーが登録している単語を閲覧.
     ///
-    /// WordsUserIdGet - GET /api/words/{userId}
-    async fn words_user_id_get(
+    /// WordsUsersUserIdGet - GET /api/words/users/{userId}
+    async fn words_users_user_id_get(
         &self,
         method: Method,
         host: Host,
         cookies: CookieJar,
-        path_params: models::WordsUserIdGetPathParams,
-    ) -> Result<WordsUserIdGetResponse, String>;
+        path_params: models::WordsUsersUserIdGetPathParams,
+    ) -> Result<WordsUsersUserIdGetResponse, String>;
 
     /// 単語の削除.
     ///
