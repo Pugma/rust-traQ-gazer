@@ -115,7 +115,7 @@ paths:
         '400':
           description: Invalid input
   
-  /words/{userId}:
+  /words/users/{userId}:
     parameters:
       - name: userId
         in: path

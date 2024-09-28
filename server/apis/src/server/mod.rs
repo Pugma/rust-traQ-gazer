@@ -56,12 +56,15 @@ where
             "/api/words",
             get(words_get::<I, A>).post(words_post::<I, A>),
         )
-        .route("/api/words/:user_id", get(words_user_id_get::<I, A>))
         .route(
             "/api/words/:word_id",
             delete(words_word_id_delete::<I, A>).put(words_word_id_put::<I, A>),
         )
         .route("/api/words/me", get(words_me_get::<I, A>))
+        .route(
+            "/api/words/users/:user_id",
+            get(words_users_user_id_get::<I, A>),
+        )
         .with_state(api_impl)
 }
 
@@ -1077,20 +1080,20 @@ where
 }
 
 #[tracing::instrument(skip_all)]
-fn words_user_id_get_validation(
-    path_params: models::WordsUserIdGetPathParams,
-) -> std::result::Result<(models::WordsUserIdGetPathParams,), ValidationErrors> {
+fn words_users_user_id_get_validation(
+    path_params: models::WordsUsersUserIdGetPathParams,
+) -> std::result::Result<(models::WordsUsersUserIdGetPathParams,), ValidationErrors> {
     path_params.validate()?;
 
     Ok((path_params,))
 }
-/// WordsUserIdGet - GET /api/words/{userId}
+/// WordsUsersUserIdGet - GET /api/words/users/{userId}
 #[tracing::instrument(skip_all)]
-async fn words_user_id_get<I, A>(
+async fn words_users_user_id_get<I, A>(
     method: Method,
     host: Host,
     cookies: CookieJar,
-    Path(path_params): Path<models::WordsUserIdGetPathParams>,
+    Path(path_params): Path<models::WordsUsersUserIdGetPathParams>,
     State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -1098,9 +1101,10 @@ where
     A: apis::words::Words,
 {
     #[allow(clippy::redundant_closure)]
-    let validation = tokio::task::spawn_blocking(move || words_user_id_get_validation(path_params))
-        .await
-        .unwrap();
+    let validation =
+        tokio::task::spawn_blocking(move || words_users_user_id_get_validation(path_params))
+            .await
+            .unwrap();
 
     let Ok((path_params,)) = validation else {
         return Response::builder()
@@ -1111,14 +1115,14 @@ where
 
     let result = api_impl
         .as_ref()
-        .words_user_id_get(method, host, cookies, path_params)
+        .words_users_user_id_get(method, host, cookies, path_params)
         .await;
 
     let mut response = Response::builder();
 
     let resp = match result {
         Ok(rsp) => match rsp {
-            apis::words::WordsUserIdGetResponse::Status200_SuccessfulRetrieval(body) => {
+            apis::words::WordsUsersUserIdGetResponse::Status200_SuccessfulRetrieval(body) => {
                 let mut response = response.status(200);
                 {
                     let mut response_headers = response.headers_mut().unwrap();
@@ -1141,7 +1145,7 @@ where
                 .unwrap()?;
                 response.body(Body::from(body_content))
             }
-            apis::words::WordsUserIdGetResponse::Status404_NotFound => {
+            apis::words::WordsUsersUserIdGetResponse::Status404_NotFound => {
                 let mut response = response.status(404);
                 response.body(Body::empty())
             }

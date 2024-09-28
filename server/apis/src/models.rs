@@ -114,7 +114,7 @@ pub struct WordsPostHeaderParams {
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct WordsUserIdGetPathParams {
+pub struct WordsUsersUserIdGetPathParams {
     /// traP ID で指定する
     pub user_id: String,
 }
