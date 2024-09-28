@@ -1,15 +1,10 @@
 use anyhow::{Ok, Result};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
-pub async fn collect_message() -> Result<()> {
-    let configuration = Configuration {
-        bearer_access_token: Some(super::ACCESS_TOKEN.clone()),
-        ..Default::default()
-    };
-
+pub(super) async fn collect_message(config: &Configuration) -> Result<()> {
     for i in 0.. {
         let result = search_messages(
-            &configuration,
+            config,
             None,
             None,
             None,
@@ -29,7 +24,8 @@ pub async fn collect_message() -> Result<()> {
         )
         .await?;
 
-        let _a = result.hits;
+        let hit_messages = result.hits;
+        println!("{}", hit_messages.len())
     }
 
     Ok(())
