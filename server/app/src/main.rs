@@ -5,7 +5,7 @@ mod traq;
 
 use handler::Handler;
 use repo::Repository;
-use tokio::{net::TcpListener, time, time::Duration};
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -22,15 +22,7 @@ async fn main() -> Result<()> {
     println!("Opened the endpoints correctly!");
 
     // setup message poller
-    tokio::spawn(async {
-        loop {
-            // 3 分おきに実行
-            let mut interval = time::interval(Duration::new(180, 0));
-            interval.tick().await;
-
-            let _ = traq::message::collect_message().await;
-        }
-    });
+    traq::start_polling().await?;
 
     Ok(())
 }

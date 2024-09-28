@@ -28,8 +28,8 @@ impl Words for Handler {
         };
 
         match word {
-            Ok(words) => return Ok(WordsGetResponse::Status200_SuccessfulRetrieval(words)),
-            Err(e) => return Err(e.to_string()),
+            Ok(words) => Ok(WordsGetResponse::Status200_SuccessfulRetrieval(words)),
+            Err(e) => Err(e.to_string()),
         }
     }
 
