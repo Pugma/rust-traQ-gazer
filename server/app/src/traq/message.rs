@@ -1,11 +1,9 @@
 use anyhow::{Ok, Result};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
-use super::aaa;
-
 pub async fn collect_message() -> Result<()> {
     let configuration = Configuration {
-        bearer_access_token: Some(aaa::ACCESS_TOKEN),
+        bearer_access_token: Some(super::ACCESS_TOKEN.clone()),
         ..Default::default()
     };
 
@@ -25,7 +23,7 @@ pub async fn collect_message() -> Result<()> {
             None,
             None,
             None,
-            Some(aaa::MESSAGE_LIMIT),
+            Some(super::MESSAGE_LIMIT),
             Some(i),
             Some("createdAt"),
         )

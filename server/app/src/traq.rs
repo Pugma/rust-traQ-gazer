@@ -1,6 +1,6 @@
 pub mod message;
+use std::{env, sync::LazyLock};
 
-mod aaa {
-    pub const ACCESS_TOKEN: String = String::new();
-    pub const MESSAGE_LIMIT: i32 = 100;
-}
+pub const MESSAGE_LIMIT: i32 = 100;
+pub static ACCESS_TOKEN: LazyLock<String> =
+    LazyLock::new(|| env::var("BOT_ACCESS_TOKEN").expect("msg"));
