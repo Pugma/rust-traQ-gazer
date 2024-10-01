@@ -6,11 +6,11 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.89"
 sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "time"]}
-tokio = {version = "1.40.0", features = ["default"]}
+tokio = {version = "1.40.0", features = ["rt"]}
 openapi = {path = "../apis"}
 axum = "0.7.6"
 axum-extra = "0.9.4"
 uuid = {version = "1.10.0", features = ["v4"]}
-traq = "0.1.5"
+traq = {version = "0.1.5", features=["rustls-tls"]}
 env_logger = "0.11.5"
 log = "0.4.22"
