@@ -1,0 +1,37 @@
+services:
+  gazer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gazer
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      RUST_LOG: DEBUG,INFO
+      BOT_ACCESS_TOKEN: 
+      DB_DATABASE: mariadb
+      DB_HOST: mariadb
+      DB_PASSWORD: password
+      DB_PORT: 3306
+      DB_USERNAME: user
+
+  mariadb:
+    image: mariadb:11.5
+    container_name: mariadb
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+      MARIADB_DATABASE: mariadb
+      MARIADB_USER: user
+      MARIADB_PASSWORD: password
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+    volumes:
+      - "./schema/schema.sql:/docker-entrypoint-initdb.d/init.sql"
+    healthcheck:
+      test: mariadb-admin ping -h 127.0.0.1 -u user -p$$MARIADB_ROOT_PASSWORD
+      interval: 1s
+      timeout: 10s
+      retries: 60
