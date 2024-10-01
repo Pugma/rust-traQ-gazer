@@ -4,7 +4,7 @@ use traq::apis::{configuration::Configuration, message_api::search_messages};
 
 pub(super) async fn collect_message(config: &Configuration) -> Result<()> {
     if let Some(token) = config.bearer_access_token.clone() {
-        if token == "".to_string() {
+        if token == *"" {
             info!("bot access token was empty");
             return Ok(());
         };
