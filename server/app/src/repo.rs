@@ -43,16 +43,17 @@ impl Config {
             .password(&self.db_password)
             .port(self.db_port)
             .username(&self.db_username)
+            .collation("utf8mb4_general_ci")
     }
 }
 
 static DB_CONFIG: LazyLock<Config> = LazyLock::new(|| Config {
-    db_database: env::var("DB_DATABASE").expect("Failed to get DB_DATABASE !"),
-    db_host: env::var("DB_HOST").expect("Failed to get DB_HOST !"),
-    db_password: env::var("DB_PASSWORD").expect("Failed to get DB_PASSWORD !"),
+    db_database: env::var("DB_DATABASE").expect("Couldn't find DB_DATABASE"),
+    db_host: env::var("DB_HOST").expect("Couldn't find DB_HOST"),
+    db_password: env::var("DB_PASSWORD").expect("Couldn't find DB_PASSWORD"),
     db_port: env::var("DB_PORT")
-        .expect("Failed to get DB_PORT !")
+        .expect("Couldn't find DB_PORT")
         .parse()
-        .expect("Failed to parse String to u16"),
-    db_username: env::var("DB_USERNAME").expect("Failed to get DB_USERNAME !"),
+        .expect("Couldn't parse String to u16"),
+    db_username: env::var("DB_USERNAME").expect("Couldn't find DB_USERNAME"),
 });

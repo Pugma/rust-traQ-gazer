@@ -1,15 +1,14 @@
 use anyhow::{Ok, Result};
+use handler::Handler;
+use log::info;
+use repo::Repository;
+use tokio::net::TcpListener;
+
 mod handler;
 mod repo;
 mod traq;
 
-use log::info;
-
-use handler::Handler;
-use repo::Repository;
-use tokio::{net::TcpListener, spawn};
-
-#[tokio::main]
+#[tokio::main(worker_threads = 100)]
 async fn main() -> Result<()> {
     // enable env_logger
     env_logger::init();
@@ -21,8 +20,9 @@ async fn main() -> Result<()> {
     // setup API server
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
     let app = openapi::server::new(Handler { repo });
-    spawn(async move {
-        println!("Opening the endpoints ...");
+
+    let endpoint_handler = tokio::spawn(async move {
+        info!("Opening the endpoints ...");
         axum::serve(listener, app)
             .await
             .expect("Failed to open the endpoints!");
@@ -30,6 +30,8 @@ async fn main() -> Result<()> {
 
     // setup message poller
     traq::start_polling().await?;
+
+    endpoint_handler.await?;
 
     Ok(())
 }
