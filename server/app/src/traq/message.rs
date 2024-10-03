@@ -35,7 +35,7 @@ pub(super) async fn collect(config: &Configuration) -> Result<()> {
         )
         .await;
 
-        if let Err(_) = result {
+        if result.is_err() {
             error!("Couldn't get message");
             return Ok(());
         }
