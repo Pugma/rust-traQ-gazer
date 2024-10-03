@@ -6,6 +6,7 @@ use sqlx::{
     MySql, Pool,
 };
 
+mod polling;
 mod words;
 
 pub mod constant {

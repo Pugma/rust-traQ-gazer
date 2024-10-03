@@ -4,6 +4,8 @@ use std::{env, sync::LazyLock};
 use tokio::{time, time::Duration};
 use traq::apis::configuration::Configuration;
 
+use crate::repo::Repository;
+
 pub mod message;
 pub const MESSAGE_LIMIT: i32 = 100;
 
@@ -14,8 +16,8 @@ static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
     ..Default::default()
 });
 
-pub async fn start_polling() -> Result<()> {
-    tokio::spawn(async {
+pub async fn start_polling(repo: Repository) -> Result<()> {
+    tokio::spawn(async move {
         // 3 分おきに実行
         let mut interval = time::interval(Duration::new(180, 0));
         interval.tick().await;
@@ -23,9 +25,10 @@ pub async fn start_polling() -> Result<()> {
         loop {
             interval.tick().await;
 
-            tokio::spawn(async {
+            let repo = repo.clone();
+            tokio::spawn(async move {
                 info!("start polling ...");
-                let _ = message::collect(&CONFIG).await;
+                let _ = message::collect(&repo, &CONFIG).await;
             });
         }
     })
