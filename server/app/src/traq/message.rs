@@ -18,7 +18,7 @@ pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result
 
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Nanos, true);
 
-    for i in 0..1 {
+    for page in 0.. {
         let result = search_messages(
             config,
             None,
@@ -35,7 +35,7 @@ pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result
             None,
             None,
             Some(MESSAGE_LIMIT),
-            Some(MESSAGE_LIMIT * i),
+            Some(MESSAGE_LIMIT * page),
             Some("-createdAt"),
         )
         .await;
@@ -50,6 +50,11 @@ pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result
         let hit_messages = result.hits;
         info!("{}", hit_messages.len());
         info!("{}", hit_messages[0].id);
+
+        // check whether all messages are retrieved
+        if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
+            break;
+        }
     }
 
     repo.record_time(now).await?;
