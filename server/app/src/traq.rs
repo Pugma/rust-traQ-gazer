@@ -18,18 +18,15 @@ static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
 
 pub async fn start_polling(repo: Repository) -> Result<()> {
     tokio::spawn(async move {
-        // 3 分おきに実行
+        // run polling every 3 minutes
         let mut interval = time::interval(Duration::new(180, 0));
         interval.tick().await;
 
         loop {
             interval.tick().await;
 
-            let repo = repo.clone();
-            tokio::spawn(async move {
-                info!("start polling ...");
-                let _ = message::collect(&repo, &CONFIG).await;
-            });
+            info!("start polling ...");
+            let _ = message::collect(&repo, &CONFIG).await;
         }
     })
     .await?;
