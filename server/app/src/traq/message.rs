@@ -7,7 +7,11 @@ use crate::repo::Repository;
 
 use super::MESSAGE_LIMIT;
 
-pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result<()> {
+pub(super) async fn collect(
+    repo: &Repository,
+    config: &Configuration,
+    checkpoint: &mut String,
+) -> Result<()> {
     if let Some(token) = config.bearer_access_token.clone() {
         debug!("bot_access_token is Some object");
         if token == *"" {
@@ -53,11 +57,13 @@ pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result
 
         // check whether all messages are retrieved
         if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
+            *checkpoint = hit_messages.last().unwrap().created_at.clone();
+            info!("Updated last_checkpoint = {}", *checkpoint);
             break;
         }
     }
 
-    repo.record_time(now).await?;
+    repo.record_time(checkpoint.clone()).await?;
 
     Ok(())
 }
