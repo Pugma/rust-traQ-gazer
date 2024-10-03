@@ -40,7 +40,13 @@ pub(super) async fn collect(repo: &Repository, config: &Configuration) -> Result
         )
         .await;
 
-        let result = result.unwrap();
+        let result = if let Ok(result) = result {
+            result
+        } else {
+            error!("Couldn't get messages from traQ!");
+            break;
+        };
+
         let hit_messages = result.hits;
         info!("{}", hit_messages.len());
         info!("{}", hit_messages[0].id);
