@@ -1,10 +1,10 @@
 use anyhow::{Ok, Result};
-use sqlx::{query, query_as, types::time::PrimitiveDateTime};
+use sqlx::{query, query_as, types::chrono::NaiveDateTime};
 
 use super::Repository;
 
 struct Polling {
-    last: PrimitiveDateTime,
+    last: NaiveDateTime,
 }
 
 impl Repository {
@@ -13,7 +13,7 @@ impl Repository {
             .fetch_one(&self.pool)
             .await?;
 
-        Ok(result.last.to_string())
+        Ok(result.last.and_utc().to_string())
     }
 
     pub async fn record_time(&self, checkpoint: String) -> Result<()> {

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.89"
-sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "time"]}
+sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "chrono"]}
 tokio = {version = "1.40.0", features = ["rt"]}
 openapi = {path = "../apis"}
 axum = "0.7.6"
