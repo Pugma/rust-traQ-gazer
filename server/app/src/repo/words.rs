@@ -1,8 +1,7 @@
 use anyhow::{Ok, Result};
-use sqlx::{query, query_as, Execute, MySql, QueryBuilder};
-
-use openapi::models::{ExcludedUsers, MyWords, Word, Words};
-use uuid::Uuid;
+use openapi::models::{ExcludedUser, ExcludedUsers, MyWord, MyWords, Word, Words};
+use sqlx::{query, query_as, types::uuid::Uuid, Execute, MySql, QueryBuilder};
+use std::collections::HashMap;
 
 use super::{constant::BIND_LIMIT, Repository};
 
@@ -55,24 +54,37 @@ impl Repository {
         Ok(result.into())
     }
 
-    pub async fn get_my_word(&self, _trap_id: String) -> Result<MyWords> {
-        // let result = query_as!(
-        //     MyWord,
-        //     "SELECT
-        //         `word`,
-        //         `word_uuid` AS `id`,
-        //         `register_time` AS `time`,
-        //         `excluded_users`.`trap_id` AS `excluded_users`
-        //     FROM `words` JOIN `excluded_users` ON `words`.`word_id` = `excluded_users`.`word_id`
-        //     WHERE `words`.`trap_id`=?",
-        //     trap_id
-        // )
-        // .fetch_all(&self.pool)
-        // .await?;
+    pub async fn get_my_word(&self, trap_id: String) -> Result<MyWords> {
+        let rows = query!(
+            "SELECT
+                `word`,
+                `word_uuid` AS `id`,
+                `register_time` AS `time`,
+                `excluded_users`.`trap_id` AS `excluded_users`
+            FROM `words` JOIN `excluded_users` ON `words`.`word_id` = `excluded_users`.`word_id`
+            WHERE `words`.`trap_id`=?",
+            trap_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
 
-        // Ok(result.into())
+        let mut a: HashMap<String, MyWord> = HashMap::new();
+        for row in rows {
+            let entry = a.entry(row.word.clone()).or_insert(MyWord {
+                word: row.word,
+                id: Uuid::from_slice(&row.id)?,
+                time: row.time.unwrap().and_utc(),
+                excluded_users: Vec::<ExcludedUser>::new().into(),
+            });
 
-        unimplemented!()
+            entry.excluded_users.push(ExcludedUser {
+                trap_id: row.excluded_users,
+            });
+        }
+
+        let my_words: Vec<MyWord> = a.into_values().collect();
+
+        Ok(my_words.into())
     }
 
     pub async fn get_by_user(&self, trap_id: String) -> Result<Words> {
