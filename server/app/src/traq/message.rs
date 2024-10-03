@@ -26,7 +26,7 @@ pub(super) async fn collect(
         let result = search_messages(
             config,
             None,
-            Some("2024-09-30T22:30:00.000000Z".to_string()),
+            Some(checkpoint.clone()),
             Some(now.clone()),
             None,
             None,
