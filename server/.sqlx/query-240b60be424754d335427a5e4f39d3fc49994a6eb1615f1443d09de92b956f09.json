@@ -1,0 +1,54 @@
+{
+  "db_name": "MySQL",
+  "query": "SELECT\n                `word`,\n                `word_uuid` AS `id`,\n                `register_time` AS `time`,\n                `excluded_users`.`trap_id` AS `excluded_users`\n            FROM `words` JOIN `excluded_users` ON `words`.`word_id` = `excluded_users`.`word_id`\n            WHERE `words`.`trap_id`=?",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "word",
+        "type_info": {
+          "type": "VarString",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 200
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": {
+          "type": "String",
+          "flags": "NOT_NULL | BINARY | NO_DEFAULT_VALUE",
+          "max_size": 36
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "time",
+        "type_info": {
+          "type": "Datetime",
+          "flags": "BINARY",
+          "max_size": 19
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "excluded_users",
+        "type_info": {
+          "type": "VarString",
+          "flags": "NOT_NULL | MULTIPLE_KEY | NO_DEFAULT_VALUE",
+          "max_size": 128
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "240b60be424754d335427a5e4f39d3fc49994a6eb1615f1443d09de92b956f09"
+}
