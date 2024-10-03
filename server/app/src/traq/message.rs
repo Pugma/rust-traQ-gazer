@@ -1,11 +1,14 @@
 use anyhow::{Ok, Result};
-use log::info;
+use log::{debug, error, info};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
-pub(super) async fn collect_message(config: &Configuration) -> Result<()> {
+use super::MESSAGE_LIMIT;
+
+pub(super) async fn collect(config: &Configuration) -> Result<()> {
     if let Some(token) = config.bearer_access_token.clone() {
+        debug!("bot_access_token is Some object");
         if token == *"" {
-            info!("bot access token was empty");
+            error!("bot access token was empty");
             return Ok(());
         };
     }
@@ -14,6 +17,7 @@ pub(super) async fn collect_message(config: &Configuration) -> Result<()> {
         let result = search_messages(
             config,
             None,
+            Some("2024-09-30T22:30:00.000000".to_string()),
             None,
             None,
             None,
@@ -25,15 +29,21 @@ pub(super) async fn collect_message(config: &Configuration) -> Result<()> {
             None,
             None,
             None,
-            None,
-            Some(super::MESSAGE_LIMIT),
-            Some(i),
-            Some("createdAt"),
+            Some(MESSAGE_LIMIT),
+            Some(MESSAGE_LIMIT * i),
+            Some("-createdAt"),
         )
-        .await.expect("failed to traQ への負荷");
+        .await;
 
+        if let Err(_) = result {
+            error!("Couldn't get message");
+            return Ok(());
+        }
+
+        let result = result.unwrap();
         let hit_messages = result.hits;
-        info!("{}", hit_messages.len())
+        info!("{}", hit_messages.len());
+        info!("{}", hit_messages[0].id);
     }
 
     Ok(())

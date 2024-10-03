@@ -1,6 +1,5 @@
 use anyhow::{Ok, Result};
 use log::info;
-use message::collect_message;
 use std::{env, sync::LazyLock};
 use tokio::{time, time::Duration};
 use traq::apis::configuration::Configuration;
@@ -26,7 +25,7 @@ pub async fn start_polling() -> Result<()> {
 
             tokio::spawn(async {
                 info!("start polling ...");
-                let _ = collect_message(&CONFIG).await;
+                let _ = message::collect(&CONFIG).await;
             });
         }
     })
