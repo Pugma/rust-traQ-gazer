@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "INSERT INTO `polling`(`key`, `last`) VALUES(1, ?) ON DUPLICATE KEY UPDATE `last`=VALUES(`last`)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "21347db95bdd8eb84e88778dac06afe16efdae22640d37893c033027088e7d70"
+}

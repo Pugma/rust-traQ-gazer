@@ -1,0 +1,24 @@
+{
+  "db_name": "MySQL",
+  "query": "SELECT `last` FROM `polling` WHERE `key`=1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "last",
+        "type_info": {
+          "type": "Datetime",
+          "flags": "NOT_NULL | BINARY | NO_DEFAULT_VALUE",
+          "max_size": 19
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "7217f2894339f9a2945e624f02febd706e24dfb2780067a26758e4a4ecfb23eb"
+}

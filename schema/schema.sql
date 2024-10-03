@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS `excluded_users` (
   FOREIGN KEY (`trap_id`) REFERENCES `users`(`trap_id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `pollinginfo` (
+CREATE TABLE IF NOT EXISTS `polling` (
   `key` INT NOT NULL,
-  `lastpollingtime` datetime NOT NULL,
+  `last` datetime NOT NULL,
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

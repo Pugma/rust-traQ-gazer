@@ -19,7 +19,7 @@ async fn main() -> Result<()> {
 
     // setup API server
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
-    let app = openapi::server::new(Handler { repo });
+    let app = openapi::server::new(Handler { repo: repo.clone() });
 
     let endpoint_handler = tokio::spawn(async move {
         info!("Opening the endpoints ...");
@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     });
 
     // setup message poller
-    traq::start_polling().await?;
+    traq::start_polling(repo).await?;
 
     endpoint_handler.await?;
 
