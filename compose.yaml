@@ -8,8 +8,8 @@ services:
       mariadb:
         condition: service_healthy
     environment:
-      RUST_LOG: DEBUG,INFO
-      BOT_ACCESS_TOKEN: 
+      RUST_LOG: DEBUG
+      BOT_ACCESS_TOKEN: ""
       DB_DATABASE: mariadb
       DB_HOST: mariadb
       DB_PASSWORD: password
