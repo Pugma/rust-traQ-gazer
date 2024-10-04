@@ -5,8 +5,8 @@ use axum::http::Method;
 use axum_extra::extract::CookieJar;
 use openapi::{
     apis::words::{
-        Words, WordsGetResponse, WordsMeGetResponse, WordsPostResponse,
-        WordsUsersUserIdGetResponse, WordsWordIdDeleteResponse, WordsWordIdPutResponse,
+        Words, WordsGetResponse, WordsMeGetResponse, WordsPostResponse, WordsWordIdDeleteResponse,
+        WordsWordIdPutResponse,
     },
     models,
 };
@@ -23,6 +23,8 @@ impl Words for Handler {
         // クエリパラメータの有無で動作を変更
         let word = if let Some(word) = query_params.word {
             self.repo.get_by_word(word).await
+        } else if let Some(trap_id) = query_params.trap_id {
+            self.repo.get_by_user(trap_id).await
         } else {
             self.repo.get_all().await
         };
@@ -64,23 +66,6 @@ impl Words for Handler {
         match result {
             Ok(()) => Ok(WordsPostResponse::Status200_SuccessfulRegistration),
             Err(_) => Ok(WordsPostResponse::Status400_InvalidInput),
-        }
-    }
-
-    async fn words_users_user_id_get(
-        &self,
-        _method: Method,
-        _host: Host,
-        _cookies: CookieJar,
-        path_params: models::WordsUsersUserIdGetPathParams,
-    ) -> Result<WordsUsersUserIdGetResponse, String> {
-        let result = self.repo.get_by_user(path_params.user_id).await;
-
-        match result {
-            Ok(words) => Ok(WordsUsersUserIdGetResponse::Status200_SuccessfulRetrieval(
-                words,
-            )),
-            Err(_) => Ok(WordsUsersUserIdGetResponse::Status404_NotFound),
         }
     }
 

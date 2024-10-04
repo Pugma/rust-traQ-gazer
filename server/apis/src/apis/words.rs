@@ -13,6 +13,8 @@ use crate::{models, types::*};
 pub enum WordsGetResponse {
     /// Successful retrieval
     Status200_SuccessfulRetrieval(models::Words),
+    /// Not found
+    Status404_NotFound,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -33,16 +35,6 @@ pub enum WordsPostResponse {
     Status200_SuccessfulRegistration,
     /// Invalid input
     Status400_InvalidInput,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[must_use]
-#[allow(clippy::large_enum_variant)]
-pub enum WordsUsersUserIdGetResponse {
-    /// Successful retrieval
-    Status200_SuccessfulRetrieval(models::Words),
-    /// Not found
-    Status404_NotFound,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -102,17 +94,6 @@ pub trait Words {
         header_params: models::WordsPostHeaderParams,
         body: models::NewWord,
     ) -> Result<WordsPostResponse, String>;
-
-    /// 指定したユーザーが登録している単語を閲覧.
-    ///
-    /// WordsUsersUserIdGet - GET /api/words/users/{userId}
-    async fn words_users_user_id_get(
-        &self,
-        method: Method,
-        host: Host,
-        cookies: CookieJar,
-        path_params: models::WordsUsersUserIdGetPathParams,
-    ) -> Result<WordsUsersUserIdGetResponse, String>;
 
     /// 単語の削除.
     ///

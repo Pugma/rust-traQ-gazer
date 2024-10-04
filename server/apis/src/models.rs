@@ -24,9 +24,12 @@ pub struct GetUsersWithSimilarWordsPathParams {
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
 pub struct StampsGetQueryParams {
-    #[serde(rename = "word")]
+    #[serde(rename = "stampName")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub word: Option<String>,
+    pub stamp_name: Option<String>,
+    #[serde(rename = "trapId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trap_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
@@ -98,6 +101,10 @@ pub struct WordsGetQueryParams {
     #[serde(rename = "word")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub word: Option<String>,
+    /// traP ID で指定する
+    #[serde(rename = "trapId")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trap_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
@@ -110,13 +117,6 @@ pub struct WordsMeGetHeaderParams {
 #[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
 pub struct WordsPostHeaderParams {
     pub x_forwarded_user: String,
-}
-
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
-#[cfg_attr(feature = "conversion", derive(frunk::LabelledGeneric))]
-pub struct WordsUsersUserIdGetPathParams {
-    /// traP ID で指定する
-    pub user_id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, validator::Validate)]
