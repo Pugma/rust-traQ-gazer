@@ -57,6 +57,11 @@ pub(super) async fn collect(
 
         // check whether all messages are retrieved
         if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
+            if !hit_messages.is_empty() {
+                break;
+            }
+
+            // get the timestamp from the latest message
             *checkpoint = hit_messages.last().unwrap().created_at.clone();
             info!("Updated last_checkpoint = {}", *checkpoint);
             break;
