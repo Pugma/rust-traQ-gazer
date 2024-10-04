@@ -25,7 +25,9 @@ paths:
       tags:
         - words
       summary: 全ユーザーの登録単語の閲覧
-      description: 自分に限らず全ユーザーの登録している単語を見ることができる。クエリパラメータで特定の単語の登録者を見ることも可能
+      description: |
+        自分に限らず全ユーザーの登録している単語を見ることができる
+        クエリパラメータで特定の単語の登録者や特定ユーザーの登録単語を見ることも可能
       parameters:
         - name: word
           in: query
@@ -34,6 +36,13 @@ paths:
             type: string
             example: "デジタル創作同好会traP"
           style: form
+        - name: trapId
+          in: query
+          description: traP ID で指定する
+          required: false
+          schema:
+            type: string
+            example: "trap"
       responses:
         '200':
           description: Successful retrieval
@@ -41,6 +50,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Words'
+        '404':
+          description: Not found
     post:
       tags:
         - words
@@ -114,39 +125,24 @@ paths:
                 $ref: '#/components/schemas/MyWords'
         '400':
           description: Invalid input
-  
-  /words/users/{userId}:
-    parameters:
-      - name: userId
-        in: path
-        description: traP ID で指定する
-        required: true
-        schema:
-          type: string
-          example: "trap"
-    get:
-      tags:
-        - words
-      summary: 指定したユーザーが登録している単語を閲覧
-      description: 得られるのは文字列だけ。通知設定や uuid 、登録日時は得られない
-      responses:
-        '200':
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Words'
-        '404':
-          description: Not found
 
   /stamps:
     get:
       tags:
         - stamps
       summary: 全ユーザーの登録スタンプの閲覧
-      description: 自分に限らず全ユーザーの登録しているスタンプを見ることができる。クエリパラメータで特定のスタンプの登録者を見ることも可能
+      description: |
+        自分に限らず全ユーザーの登録しているスタンプを見ることができる
+        クエリパラメータで特定のスタンプの登録者や特定ユーザーの登録スタンプを見ることも可能
       parameters:
-        - name: word
+        - name: stampName
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "デジタル創作同好会traP"
+          style: form
+        - name: trapId
           in: query
           required: false
           schema:

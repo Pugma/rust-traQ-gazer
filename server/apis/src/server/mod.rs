@@ -61,10 +61,6 @@ where
             delete(words_word_id_delete::<I, A>).put(words_word_id_put::<I, A>),
         )
         .route("/api/words/me", get(words_me_get::<I, A>))
-        .route(
-            "/api/words/users/:user_id",
-            get(words_users_user_id_get::<I, A>),
-        )
         .with_state(api_impl)
 }
 
@@ -834,6 +830,10 @@ where
                 .unwrap()?;
                 response.body(Body::from(body_content))
             }
+            apis::words::WordsGetResponse::Status404_NotFound => {
+                let mut response = response.status(404);
+                response.body(Body::empty())
+            }
         },
         Err(_) => {
             // Application code returned an error. This should not happen, as the implementation should
@@ -1063,90 +1063,6 @@ where
             }
             apis::words::WordsPostResponse::Status400_InvalidInput => {
                 let mut response = response.status(400);
-                response.body(Body::empty())
-            }
-        },
-        Err(_) => {
-            // Application code returned an error. This should not happen, as the implementation should
-            // return a valid response.
-            response.status(500).body(Body::empty())
-        }
-    };
-
-    resp.map_err(|e| {
-        error!(error = ?e);
-        StatusCode::INTERNAL_SERVER_ERROR
-    })
-}
-
-#[tracing::instrument(skip_all)]
-fn words_users_user_id_get_validation(
-    path_params: models::WordsUsersUserIdGetPathParams,
-) -> std::result::Result<(models::WordsUsersUserIdGetPathParams,), ValidationErrors> {
-    path_params.validate()?;
-
-    Ok((path_params,))
-}
-/// WordsUsersUserIdGet - GET /api/words/users/{userId}
-#[tracing::instrument(skip_all)]
-async fn words_users_user_id_get<I, A>(
-    method: Method,
-    host: Host,
-    cookies: CookieJar,
-    Path(path_params): Path<models::WordsUsersUserIdGetPathParams>,
-    State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::words::Words,
-{
-    #[allow(clippy::redundant_closure)]
-    let validation =
-        tokio::task::spawn_blocking(move || words_users_user_id_get_validation(path_params))
-            .await
-            .unwrap();
-
-    let Ok((path_params,)) = validation else {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-    };
-
-    let result = api_impl
-        .as_ref()
-        .words_users_user_id_get(method, host, cookies, path_params)
-        .await;
-
-    let mut response = Response::builder();
-
-    let resp = match result {
-        Ok(rsp) => match rsp {
-            apis::words::WordsUsersUserIdGetResponse::Status200_SuccessfulRetrieval(body) => {
-                let mut response = response.status(200);
-                {
-                    let mut response_headers = response.headers_mut().unwrap();
-                    response_headers.insert(
-                        CONTENT_TYPE,
-                        HeaderValue::from_str("application/json").map_err(|e| {
-                            error!(error = ?e);
-                            StatusCode::INTERNAL_SERVER_ERROR
-                        })?,
-                    );
-                }
-
-                let body_content = tokio::task::spawn_blocking(move || {
-                    serde_json::to_vec(&body).map_err(|e| {
-                        error!(error = ?e);
-                        StatusCode::INTERNAL_SERVER_ERROR
-                    })
-                })
-                .await
-                .unwrap()?;
-                response.body(Body::from(body_content))
-            }
-            apis::words::WordsUsersUserIdGetResponse::Status404_NotFound => {
-                let mut response = response.status(404);
                 response.body(Body::empty())
             }
         },
