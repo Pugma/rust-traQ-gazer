@@ -56,7 +56,7 @@ pub(super) async fn collect(
 
         // check whether all messages are retrieved
         if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
-            if !hit_messages.is_empty() {
+            if hit_messages.is_empty() {
                 *checkpoint = now;
                 info!("Updated last_checkpoint = {}", *checkpoint);
                 break;
