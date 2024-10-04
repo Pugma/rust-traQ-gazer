@@ -9,6 +9,7 @@ use crate::repo::Repository;
 
 pub mod message;
 pub const MESSAGE_LIMIT: i32 = 100;
+const POLLING_INTERVAL_SEC: u64 = 180;
 
 static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
     bearer_access_token: Some(
@@ -19,10 +20,11 @@ static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
 
 pub async fn start_polling(repo: Repository) -> Result<()> {
     tokio::spawn(async move {
-        // run polling every 3 minutes
-        let mut interval = time::interval(Duration::new(180, 0));
+        // run polling at even intervals
+        let mut interval = time::interval(Duration::new(POLLING_INTERVAL_SEC, 0));
         interval.tick().await;
 
+        // get last timestamp when this app restarts
         let mut last_checkpoint = if let Ok(point) = repo.get_time().await {
             point
         } else {
