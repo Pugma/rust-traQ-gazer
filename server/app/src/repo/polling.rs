@@ -17,7 +17,7 @@ impl Repository {
     }
 
     pub async fn record_time(&self, checkpoint: String) -> Result<()> {
-        query!("INSERT INTO `polling`(`key`, `last`) VALUES(1, ?) ON DUPLICATE KEY UPDATE `last`=VALUES(`last`)", checkpoint,).execute(&self.pool).await?;
+        query!("INSERT INTO `polling`(`key`, `last`) VALUES(1, ?) ON DUPLICATE KEY UPDATE `last`=VALUES(`last`)", checkpoint).execute(&self.pool).await?;
 
         Ok(())
     }
