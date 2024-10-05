@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chrono::{SecondsFormat, Utc};
+use chrono::{DateTime, SecondsFormat, Utc};
 use log::{debug, error, info};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
@@ -10,7 +10,7 @@ use super::MESSAGE_LIMIT;
 pub(super) async fn collect(
     repo: &Repository,
     config: &Configuration,
-    checkpoint: &mut String,
+    checkpoint: &mut DateTime<Utc>,
 ) -> Result<()> {
     if let Some(token) = config.bearer_access_token.clone() {
         debug!("bot_access_token is Some object");
@@ -20,14 +20,14 @@ pub(super) async fn collect(
         };
     }
 
-    let now = Utc::now().to_rfc3339_opts(SecondsFormat::Nanos, true);
+    let now = Utc::now();
 
     for page in 0.. {
         let result = search_messages(
             config,
             None,
-            Some(checkpoint.clone()),
-            Some(now.clone()),
+            Some(checkpoint.to_rfc3339_opts(SecondsFormat::Nanos, true)),
+            Some(now.to_rfc3339_opts(SecondsFormat::Nanos, true)),
             None,
             None,
             None,
@@ -63,13 +63,13 @@ pub(super) async fn collect(
             }
 
             // get the timestamp from the latest message
-            *checkpoint = hit_messages.last().unwrap().created_at.clone();
+            *checkpoint = hit_messages.last().unwrap().created_at.clone().parse()?;
             info!("Updated last_checkpoint = {}", *checkpoint);
             break;
         }
     }
 
-    repo.record_time(checkpoint.clone()).await?;
+    (*repo).record_time(checkpoint.clone()).await?;
 
     Ok(())
 }
