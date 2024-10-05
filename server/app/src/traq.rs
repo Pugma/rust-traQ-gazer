@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chrono::{SecondsFormat, Utc};
+use chrono::Utc;
 use log::{error, info};
 use std::{env, sync::LazyLock};
 use tokio::{time, time::Duration};
@@ -29,7 +29,7 @@ pub async fn start_polling(repo: Repository) -> Result<()> {
             point
         } else {
             error!("Couldn't get last checkpoint!");
-            Utc::now().to_rfc3339_opts(SecondsFormat::Nanos, true)
+            Utc::now()
         };
 
         loop {
