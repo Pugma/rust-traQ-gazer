@@ -60,9 +60,15 @@ impl Repository {
                 `word`,
                 `word_uuid` AS `id`,
                 `register_time` AS `time`,
-                `excluded_users`.`trap_id` AS `excluded_users`
-            FROM `words` JOIN `excluded_users` ON `words`.`word_id` = `excluded_users`.`word_id`
-            WHERE `words`.`trap_id`=?",
+                `word_excluded_users`.`trap_id` AS `excluded_users`
+            FROM
+                `words`
+            JOIN
+                `word_excluded_users`
+            ON
+                `words`.`word_id` = `word_excluded_users`.`word_id`
+            WHERE
+                `words`.`trap_id`=?",
             trap_id
         )
         .fetch_all(&self.pool)
@@ -104,9 +110,12 @@ impl Repository {
         word_id: Uuid,
         excluded_users: ExcludedUsers,
     ) -> Result<()> {
-        query!("DELETE FROM `excluded_users` WHERE `word_id` = ?", word_id,)
-            .execute(&self.pool)
-            .await?;
+        query!(
+            "DELETE FROM `word_excluded_users` WHERE `word_id` = ?",
+            word_id,
+        )
+        .execute(&self.pool)
+        .await?;
 
         let mut query_builder =
             QueryBuilder::<MySql>::new("INSERT INTO `excluded_users`(`word_id`, `trap_id`) ");
