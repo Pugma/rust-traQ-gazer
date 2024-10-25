@@ -7,6 +7,7 @@ use sqlx::{
 };
 
 mod polling;
+mod traq_message;
 mod words;
 
 pub mod constant {
