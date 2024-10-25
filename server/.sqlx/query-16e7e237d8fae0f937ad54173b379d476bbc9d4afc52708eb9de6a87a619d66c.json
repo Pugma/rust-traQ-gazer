@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "SELECT\n                `word`,\n                `word_uuid` AS `id`,\n                `register_time` AS `time`,\n                `excluded_users`.`trap_id` AS `excluded_users`\n            FROM `words` JOIN `excluded_users` ON `words`.`word_id` = `excluded_users`.`word_id`\n            WHERE `words`.`trap_id`=?",
+  "query": "SELECT\n                `word`,\n                `word_uuid` AS `id`,\n                `register_time` AS `time`,\n                `word_excluded_users`.`trap_id` AS `excluded_users`\n            FROM\n                `words`\n            JOIN\n                `word_excluded_users`\n            ON\n                `words`.`word_id` = `word_excluded_users`.`word_id`\n            WHERE\n                `words`.`trap_id`=?",
   "describe": {
     "columns": [
       {
@@ -50,5 +50,5 @@
       false
     ]
   },
-  "hash": "240b60be424754d335427a5e4f39d3fc49994a6eb1615f1443d09de92b956f09"
+  "hash": "16e7e237d8fae0f937ad54173b379d476bbc9d4afc52708eb9de6a87a619d66c"
 }

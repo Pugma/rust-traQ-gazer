@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "DELETE FROM `word_excluded_users` WHERE `word_id` = ?",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "0c85cedeaa4596b2c9502fb1117e5b4395166143a20bed6d776392d8a1d91a41"
+}

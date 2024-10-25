@@ -1,11 +1,17 @@
 use anyhow::Result;
+use axum::async_trait;
 use chrono::{DateTime, SecondsFormat, Utc};
 use log::{debug, error, info};
-use traq::apis::{configuration::Configuration, message_api::search_messages};
+use traq::{
+    apis::{
+        configuration::Configuration, message_api::search_messages, user_api::post_direct_message,
+    },
+    models::{Message, PostMessageRequest},
+};
+use uuid::Uuid;
 
+use super::{CONFIG, MESSAGE_LIMIT};
 use crate::repo::Repository;
-
-use super::MESSAGE_LIMIT;
 
 pub(super) async fn collect(
     repo: &Repository,
@@ -54,6 +60,12 @@ pub(super) async fn collect(
         let hit_messages = result.hits;
         info!("Collected {} messages", hit_messages.len());
 
+        let m = hit_messages.clone();
+        let r = repo.clone();
+        tokio::spawn(async move {
+            let _ = process(m, &r);
+        });
+
         // check whether all messages are retrieved
         if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
             if hit_messages.is_empty() {
@@ -72,4 +84,130 @@ pub(super) async fn collect(
     (*repo).record_time(checkpoint.clone()).await?;
 
     Ok(())
+}
+
+async fn process(messages: Vec<Message>, repo: &Repository) -> Result<()> {
+    let messages = convert(messages);
+
+    let mut notifies = Vec::<Box<dyn Notify>>::new();
+
+    for message in messages {
+        notifies.push(message.match_word(repo).await);
+        notifies.push(message.match_stamp(repo).await);
+    }
+
+    // These Vectors no longer need to be edited
+    let ns: Vec<Box<dyn Notify>> = notifies;
+
+    info!("Sending {} DMs...", ns.len());
+    for n in ns {
+        let _ = n.send_dm();
+    }
+    info!("Correctly finished sending DMs!");
+
+    Ok(())
+}
+
+pub struct A {
+    pub message_uuid: Uuid,
+    pub user_id: Uuid,
+    pub content: String,
+    pub stamps: Vec<Stamp>,
+}
+
+struct Stamp {
+    stamp_id: Uuid,
+    user_id: Uuid,
+}
+
+pub struct WordNotify {
+    pub words: Vec<String>,
+    pub target_traq_uuid: Uuid,
+    pub message_uuid: Uuid,
+}
+
+pub struct StampNotify {
+    pub stamps: Vec<String>,
+    pub target_traq_uuid: Uuid,
+    pub message_uuid: Uuid,
+}
+
+fn convert(messages: Vec<Message>) -> Vec<A> {
+    let mut a = Vec::<A>::new();
+
+    for i in messages {
+        let mut c = Vec::<Stamp>::new();
+        for j in i.stamps {
+            c.push(Stamp {
+                user_id: j.user_id,
+                stamp_id: j.stamp_id,
+            });
+        }
+
+        a.push(A {
+            message_uuid: i.id,
+            user_id: i.user_id,
+            content: i.content,
+            stamps: c,
+        });
+    }
+
+    a
+}
+
+impl A {
+    async fn match_word(&self, repo: &Repository) -> Box<dyn Notify> {
+        let _ = repo.a(self).await;
+        unimplemented!()
+    }
+
+    async fn match_stamp(&self, repo: &Repository) -> Box<dyn Notify> {
+        let _ = repo.b(self).await;
+        unimplemented!()
+    }
+}
+
+#[async_trait]
+trait Notify {
+    async fn send_dm(&self) -> Result<()>;
+}
+
+#[async_trait]
+impl Notify for WordNotify {
+    async fn send_dm(&self) -> Result<()> {
+        let _a = post_direct_message(
+            &CONFIG,
+            &self.target_traq_uuid.to_string(),
+            Some(PostMessageRequest {
+                content: format!("{:?}\n{}", self.words, self.message_uuid),
+                embed: None,
+            }),
+        )
+        .await;
+
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl Notify for StampNotify {
+    async fn send_dm(&self) -> Result<()> {
+        let _a = post_direct_message(
+            &CONFIG,
+            &self.target_traq_uuid.to_string(),
+            Some(PostMessageRequest {
+                content: format!("{:?}\n{}", self.stamps, self.message_uuid),
+                embed: None,
+            }),
+        )
+        .await;
+
+        let _ = match _a {
+            Ok(_) => return Ok(()),
+            Err(_) => {
+                error!("");
+                return Ok(());
+            }
+        };
+    }
 }
