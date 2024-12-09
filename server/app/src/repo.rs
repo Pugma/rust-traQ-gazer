@@ -16,7 +16,7 @@ pub mod constant {
 
 #[derive(Clone)]
 pub struct Repository {
-    pub pool: Pool<MySql>,
+    pool: Pool<MySql>,
 }
 
 impl Repository {
