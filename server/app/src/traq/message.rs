@@ -115,7 +115,7 @@ pub struct A {
     pub stamps: Vec<Stamp>,
 }
 
-struct Stamp {
+pub struct Stamp {
     stamp_id: Uuid,
     user_id: Uuid,
 }
