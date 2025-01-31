@@ -3,10 +3,10 @@ use sqlx::query;
 use uuid::Uuid;
 
 use super::Repository;
-use crate::traq::message::{StampNotify, WordNotify, A};
+use crate::traq::message::{NotificationMessage, StampNotify, WordNotify};
 
 impl Repository {
-    pub async fn a(&self, a: &A) -> Result<WordNotify> {
+    pub async fn a(&self, a: &NotificationMessage) -> Result<WordNotify> {
         let _aa = query!(
             "SELECT
                 `word`,
@@ -31,7 +31,7 @@ impl Repository {
         })
     }
 
-    pub async fn b(&self, a: &A) -> Result<StampNotify> {
+    pub async fn b(&self, a: &NotificationMessage) -> Result<StampNotify> {
         let _aa = query!(
             "SELECT
                 `word`,
