@@ -108,11 +108,11 @@ async fn process(messages: Vec<Message>, repo: &Repository) -> Result<()> {
     Ok(())
 }
 
-pub struct A {
+pub struct NotificationMessage {
     pub message_uuid: Uuid,
-    pub user_id: Uuid,
-    pub content: String,
-    pub stamps: Vec<Stamp>,
+    user_id: Uuid,
+    content: String,
+    stamps: Vec<Stamp>,
 }
 
 pub struct Stamp {
@@ -132,8 +132,8 @@ pub struct StampNotify {
     pub message_uuid: Uuid,
 }
 
-fn convert(messages: Vec<Message>) -> Vec<A> {
-    let mut a = Vec::<A>::new();
+fn convert(messages: Vec<Message>) -> Vec<NotificationMessage> {
+    let mut a = Vec::<NotificationMessage>::new();
 
     for i in messages {
         let mut c = Vec::<Stamp>::new();
@@ -144,7 +144,7 @@ fn convert(messages: Vec<Message>) -> Vec<A> {
             });
         }
 
-        a.push(A {
+        a.push(NotificationMessage {
             message_uuid: i.id,
             user_id: i.user_id,
             content: i.content,
@@ -155,7 +155,7 @@ fn convert(messages: Vec<Message>) -> Vec<A> {
     a
 }
 
-impl A {
+impl NotificationMessage {
     async fn match_word(&self, repo: &Repository) -> Box<dyn Notify> {
         let _ = repo.a(self).await;
         unimplemented!()
