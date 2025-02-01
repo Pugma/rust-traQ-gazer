@@ -7,7 +7,7 @@ use crate::traq::message::{NotificationMessage, StampNotify, WordNotify};
 
 impl Repository {
     pub async fn a(&self, a: &NotificationMessage) -> Result<WordNotify> {
-        let _aa = query!(
+        let matched_words = query!(
             "SELECT
                 `word`,
                 `traq_uuid`
@@ -22,11 +22,13 @@ impl Repository {
             ON
                 `words`.`trap_id` = `users`.`trap_id`
             "
-        );
+        )
+        .fetch_all(&self.pool)
+        .await?;
 
         Ok(WordNotify {
-            words: vec!["".to_string()],
-            target_traq_uuid: Uuid::new_v4(),
+            words: matched_words.iter().map(|a| a.word.clone()).collect(),
+            target_traq_uuid: Uuid::parse_str(&(matched_words[0].traq_uuid))?,
             message_uuid: a.message_uuid,
         })
     }
