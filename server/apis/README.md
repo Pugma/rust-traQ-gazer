@@ -12,8 +12,8 @@ server, you can easily generate a server stub.
 To see how to make this your own, look here: [README]((https://openapi-generator.tech))
 
 - API version: 1.0.0
-- Build date: 2024-10-04T16:08:05.045603212Z[Etc/UTC]
-- Generator version: 7.8.0
+- Build date: 2025-03-09T00:58:00.071959467Z[Etc/UTC]
+- Generator version: 7.12.0
 
 
 
@@ -44,9 +44,11 @@ struct ServerImpl {
 
 #[allow(unused_variables)]
 #[async_trait]
-impl openapi::Api for ServerImpl {
+impl openapi::apis::default::Api for ServerImpl {
   // API implementation goes here
 }
+
+impl openapi::apis::ErrorHandler for ServerImpl {}
 
 pub async fn start_server(addr: &str) {
     // initialize tracing

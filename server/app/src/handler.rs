@@ -1,5 +1,6 @@
 use crate::repo::Repository;
 
+mod error;
 mod similar;
 mod stamps;
 mod trend;

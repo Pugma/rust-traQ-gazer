@@ -1,4 +1,5 @@
-use axum::async_trait;
+use axum::http::Method;
+use axum_extra::extract::{CookieJar, Host};
 use openapi::{
     apis::stamps::{Stamps, StampsGetResponse, StampsPostResponse},
     models,
@@ -6,26 +7,26 @@ use openapi::{
 
 use super::Handler;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl Stamps for Handler {
     async fn stamps_get(
         &self,
-        _method: axum::http::Method,
-        _host: axum::extract::Host,
-        _cookies: axum_extra::extract::CookieJar,
-        _query_params: openapi::models::StampsGetQueryParams,
-    ) -> Result<StampsGetResponse, String> {
+        _method: &Method,
+        _host: &Host,
+        _cookies: &CookieJar,
+        _query_params: &models::StampsGetQueryParams,
+    ) -> Result<StampsGetResponse, ()> {
         unimplemented!()
     }
 
     async fn stamps_post(
         &self,
-        _method: axum::http::Method,
-        _host: axum::extract::Host,
-        _cookies: axum_extra::extract::CookieJar,
-        _header_params: models::StampsPostHeaderParams,
-        _body: openapi::models::NewStamp,
-    ) -> Result<StampsPostResponse, String> {
+        _method: &Method,
+        _host: &Host,
+        _cookies: &CookieJar,
+        _header_params: &models::StampsPostHeaderParams,
+        _body: &models::NewStamp,
+    ) -> Result<StampsPostResponse, ()> {
         unimplemented!()
     }
 }
