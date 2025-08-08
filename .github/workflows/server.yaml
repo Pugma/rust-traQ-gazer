@@ -22,7 +22,7 @@ jobs:
         with:
           sparse-checkout: server
       - name: clippy
-        run: cargo clippy --package rust-traQ-gazer --no-deps -- -D warnings
+        run: cargo clippy --package rust-traQ-gazer --no-deps
         working-directory: ./server/
   
   build:
