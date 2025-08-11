@@ -16,7 +16,7 @@ impl WordRepository for Repository {
                     `words` (`uuid`, `user_id`, `value`, `is_regex`)
                 VALUES
                     (?, ?, ?, ?)
-            "#r,
+            "#,
             word.uuid(),
             word.user_id(),
             word.value(),
@@ -45,7 +45,7 @@ impl WordRepository for Repository {
                     `w`.`id` = `word_excluded_users`.`word_id`
                 GROUP BY
                     `w`.`id`
-            "#r
+            "#
         )
         .fetch_all(&self.pool)
         .await;
@@ -90,7 +90,7 @@ impl WordRepository for Repository {
                     `w`.`id` = `word_excluded_users`.`word_id`
                 WHERE
                     `w`.`user_id` = ?
-            "#r,
+            "#,
             user_id
         )
         .fetch_all(&self.pool)
@@ -121,7 +121,7 @@ impl WordRepository for Repository {
                 DELETE FROM `words`
                 WHERE
                     `id` = ?
-            "#r,
+            "#,
             word_id
         )
         .execute(&self.pool)
