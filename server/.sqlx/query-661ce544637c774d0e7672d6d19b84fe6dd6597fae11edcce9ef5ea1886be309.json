@@ -1,0 +1,64 @@
+{
+  "db_name": "MySQL",
+  "query": "\n                SELECT \n                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`\n                FROM \n                    `words` w\n                JOIN\n                    `word_excluded_users`\n                ON\n                    `w`.`id` = `word_excluded_users`.`word_id`\n                WHERE\n                    `w`.`user_id` = ?\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | PRIMARY_KEY | AUTO_INCREMENT",
+          "max_size": 8
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "uuid",
+        "type_info": {
+          "type": "String",
+          "flags": "NOT_NULL | BINARY | NO_DEFAULT_VALUE",
+          "max_size": 36
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "user_id",
+        "type_info": {
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | NO_DEFAULT_VALUE",
+          "max_size": 8
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "value",
+        "type_info": {
+          "type": "VarString",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 200
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "is_regex",
+        "type_info": {
+          "type": "Tiny",
+          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
+          "max_size": 1
+        }
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "661ce544637c774d0e7672d6d19b84fe6dd6597fae11edcce9ef5ea1886be309"
+}
