@@ -5,9 +5,10 @@ use std::{env, sync::LazyLock};
 use tokio::{time, time::Duration};
 use traq::apis::configuration::Configuration;
 
-use crate::repo::Repository;
+use crate::infra::repo::Repository;
 
 pub mod message;
+pub mod notification;
 pub const MESSAGE_LIMIT: i32 = 100;
 const POLLING_INTERVAL_SEC: u64 = 180;
 

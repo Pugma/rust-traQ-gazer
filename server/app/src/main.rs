@@ -1,12 +1,11 @@
 use anyhow::{Ok, Result};
-use handler::Handler;
+use infra::{handler::Handler, repo::Repository, traq};
 use log::info;
-use repo::Repository;
 use tokio::net::TcpListener;
 
-mod handler;
-mod repo;
-mod traq;
+mod domain;
+mod infra;
+mod usecase;
 
 #[tokio::main(worker_threads = 100)]
 async fn main() -> Result<()> {

@@ -1,4 +1,4 @@
-use crate::repo::Repository;
+use crate::infra::repo::Repository;
 
 mod error;
 mod similar;
