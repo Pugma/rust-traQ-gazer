@@ -39,7 +39,7 @@ impl WordRepository for Repository {
                     GROUP_CONCAT(`word_excluded_users`.`user_id` SEPARATOR ',') AS `excluded_user_ids`
                 FROM 
                     `words` w
-                JOIN
+                LEFT JOIN
                     `word_excluded_users`
                 ON
                     `w`.`id` = `word_excluded_users`.`word_id`
@@ -84,7 +84,7 @@ impl WordRepository for Repository {
                     `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`
                 FROM 
                     `words` w
-                JOIN
+                LEFT JOIN
                     `word_excluded_users`
                 ON
                     `w`.`id` = `word_excluded_users`.`word_id`
