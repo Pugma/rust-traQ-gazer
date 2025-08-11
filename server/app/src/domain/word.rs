@@ -1,9 +1,17 @@
 use crate::domain::user::UserId;
 use uuid::Uuid;
 
-pub struct WordId(i32);
-pub struct WordUuid(Uuid);
-pub struct WordValue(String);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct WordId(pub i64);
+
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct WordUuid(pub Uuid);
+
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct WordValue(pub String);
 
 impl WordValue {
     pub fn new(value: String) -> Result<Self, String> {
@@ -39,15 +47,28 @@ impl NewWord {
             excluded_message_user_ids,
         })
     }
+
+    pub fn uuid(&self) -> &WordUuid {
+        &self.uuid
+    }
+    pub fn user_id(&self) -> &UserId {
+        &self.user_id
+    }
+    pub fn value(&self) -> &WordValue {
+        &self.value
+    }
+    pub fn is_regex(&self) -> bool {
+        self.is_regex
+    }
 }
 
 pub struct Word {
-    id: WordId,
-    uuid: WordUuid,
-    user_id: UserId,
-    value: WordValue,
-    is_regex: bool,
-    excluded_message_user_ids: Vec<UserId>,
+    pub id: WordId,
+    pub uuid: WordUuid,
+    pub user_id: UserId,
+    pub value: WordValue,
+    pub is_regex: bool,
+    pub excluded_message_user_ids: Vec<UserId>,
 }
 
 pub trait WordRepository {

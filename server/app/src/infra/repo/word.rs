@@ -1,132 +1,135 @@
-use anyhow::{Ok, Result};
-use openapi::models::{ExcludedUser, ExcludedUsers, MyWord, MyWords, Word, Words};
-use sqlx::{query, query_as, types::uuid::Uuid, Execute, MySql, QueryBuilder};
-use std::collections::HashMap;
+use sqlx::{query, query_as};
+use uuid::Uuid;
 
-use super::{constant::BIND_LIMIT, Repository};
+use crate::domain::{
+    user::UserId,
+    word::{NewWord, Word, WordId, WordRepository, WordUuid, WordValue},
+};
 
-impl Repository {
-    pub async fn register(&self, trap_id: String, word: String) -> Result<()> {
-        query!(
-            "
-            INSERT INTO `words` (`word_uuid`, `trap_id`, `word`)
-            VALUES (?, ?, ?)
-            ",
-            Uuid::new_v4(),
-            trap_id,
-            word
+use super::Repository;
+
+impl WordRepository for Repository {
+    async fn insert_word(&self, word: NewWord) -> Result<(), String> {
+        let result = query!(
+            r#"
+                INSERT INTO 
+                    `words` (`uuid`, `user_id`, `value`, `is_regex`)
+                VALUES
+                    (?, ?, ?, ?)
+            "#,
+            word.uuid(),
+            word.user_id(),
+            word.value(),
+            word.is_regex()
         )
         .execute(&self.pool)
-        .await?;
+        .await;
 
-        Ok(())
-    }
-
-    pub async fn delete(&self, trap_id: String, word_id: Uuid) -> Result<()> {
-        query!(
-            "DELETE FROM `words` WHERE `trap_id` = ? AND `word_id` = ?",
-            trap_id,
-            word_id,
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
-    pub async fn get_all(&self) -> Result<Words> {
-        let result = query_as!(Word, "SELECT `trap_id`, `word` FROM `words`")
-            .fetch_all(&self.pool)
-            .await?;
-
-        Ok(result.into())
-    }
-
-    pub async fn get_by_word(&self, word: String) -> Result<Words> {
-        let result = query_as!(
-            Word,
-            "SELECT `trap_id`, `word` FROM `words` WHERE `word`=?",
-            word
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        Ok(result.into())
-    }
-
-    pub async fn get_my_word(&self, trap_id: String) -> Result<MyWords> {
-        let rows = query!(
-            "SELECT
-                `word`,
-                `word_uuid` AS `id`,
-                `register_time` AS `time`,
-                `word_excluded_users`.`trap_id` AS `excluded_users`
-            FROM
-                `words`
-            JOIN
-                `word_excluded_users`
-            ON
-                `words`.`word_id` = `word_excluded_users`.`word_id`
-            WHERE
-                `words`.`trap_id`=?",
-            trap_id
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        let mut a: HashMap<String, MyWord> = HashMap::new();
-        for row in rows {
-            let entry = a.entry(row.word.clone()).or_insert(MyWord {
-                word: row.word,
-                id: Uuid::from_slice(&row.id)?,
-                time: row.time.unwrap().and_utc(),
-                excluded_users: Vec::<ExcludedUser>::new().into(),
-            });
-
-            entry.excluded_users.push(ExcludedUser {
-                trap_id: row.excluded_users,
-            });
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
         }
-
-        let my_words: Vec<MyWord> = a.into_values().collect();
-
-        Ok(my_words.into())
     }
 
-    pub async fn get_by_user(&self, trap_id: String) -> Result<Words> {
-        let result = query_as!(
-            Word,
-            "SELECT `trap_id`, `word` FROM `words` WHERE `trap_id`=?",
-            trap_id
+    async fn get_all_words(&self) -> Result<Vec<Word>, String> {
+        let rows = query!(
+            r#"
+                SELECT 
+                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`,
+                    GROUP_CONCAT(`word_excluded_users`.`user_id` SEPARATOR ',') AS `excluded_user_ids`
+                FROM 
+                    `words` w
+                LEFT JOIN
+                    `word_excluded_users`
+                ON
+                    `w`.`id` = `word_excluded_users`.`word_id`
+                GROUP BY
+                    `w`.`id`
+            "#
         )
         .fetch_all(&self.pool)
-        .await?;
+        .await;
 
-        Ok(result.into())
+        match rows {
+            Ok(rows) => {
+                let words = rows
+                    .into_iter()
+                    .map(|row| Word {
+                        id: WordId(row.id),
+                        uuid: WordUuid(Uuid::from_slice(&row.uuid).unwrap()),
+                        user_id: UserId(row.user_id),
+                        value: WordValue(row.value),
+                        is_regex: row.is_regex != 0,
+                        excluded_message_user_ids: row
+                            .excluded_user_ids
+                            .unwrap_or("".to_string())
+                            .split(',')
+                            .filter_map(|id| id.parse().ok().map(UserId))
+                            .collect(),
+                    })
+                    .collect();
+                Ok(words)
+            }
+            Err(err) => Err(err.to_string()),
+        }
     }
 
-    pub async fn edit_excluded_users(
+    async fn find_words_by_user_id(
         &self,
-        word_id: Uuid,
-        excluded_users: ExcludedUsers,
-    ) -> Result<()> {
-        query!(
-            "DELETE FROM `word_excluded_users` WHERE `word_id` = ?",
-            word_id,
+        user_id: &UserId,
+    ) -> std::result::Result<Vec<Word>, String> {
+        let rows = query!(
+            r#"
+                SELECT 
+                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`
+                FROM 
+                    `words` w
+                LEFT JOIN
+                    `word_excluded_users`
+                ON
+                    `w`.`id` = `word_excluded_users`.`word_id`
+                WHERE
+                    `w`.`user_id` = ?
+            "#,
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await;
+
+        match rows {
+            Ok(rows) => {
+                let words = rows
+                    .into_iter()
+                    .map(|row| Word {
+                        id: WordId(row.id),
+                        uuid: WordUuid(Uuid::from_slice(&row.uuid).unwrap()),
+                        user_id: UserId(row.user_id),
+                        value: WordValue(row.value),
+                        is_regex: row.is_regex != 0,
+                        excluded_message_user_ids: Vec::new(),
+                    })
+                    .collect();
+                Ok(words)
+            }
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    async fn delete_word(&self, word_id: &WordId) -> Result<(), String> {
+        let rows = query!(
+            r#"
+                DELETE FROM `words`
+                WHERE
+                    `id` = ?
+            "#,
+            word_id
         )
         .execute(&self.pool)
-        .await?;
+        .await;
 
-        let mut query_builder =
-            QueryBuilder::<MySql>::new("INSERT INTO `excluded_users`(`word_id`, `trap_id`) ");
-
-        query_builder.push_values(&excluded_users[0..=BIND_LIMIT / 2], |mut b, users| {
-            b.push_bind(word_id).push_bind(users.trap_id.clone());
-        });
-
-        let query = query_builder.build();
-        query.sql();
-
-        Ok(())
+        match rows {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
+        }
     }
 }
