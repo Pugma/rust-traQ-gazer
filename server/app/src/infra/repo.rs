@@ -2,13 +2,13 @@ use std::{env, sync::LazyLock};
 
 use anyhow::{Ok, Result};
 use sqlx::{
-    mysql::{MySqlConnectOptions, MySqlPoolOptions},
     MySql, Pool,
+    mysql::{MySqlConnectOptions, MySqlPoolOptions},
 };
 
 mod polling;
-mod traq_message;
-mod words;
+mod stamps;
+mod word;
 
 pub mod constant {
     pub const BIND_LIMIT: usize = 65535;

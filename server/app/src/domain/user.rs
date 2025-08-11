@@ -1,6 +1,9 @@
+use sqlx::Type;
 use uuid::Uuid;
 
-pub struct UserId(i32);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct UserId(pub i64);
 
 pub struct User {
     id: UserId,
