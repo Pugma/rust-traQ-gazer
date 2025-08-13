@@ -1,16 +1,9 @@
-use anyhow::Result;
-use chrono::Utc;
-use log::{error, info};
 use std::{env, sync::LazyLock};
-use tokio::{time, time::Duration};
 use traq::apis::configuration::Configuration;
 
-use crate::infra::repo::Repository;
-
 pub mod message;
+pub mod message_poller_impl;
 pub mod notification;
-pub const MESSAGE_LIMIT: i32 = 100;
-const POLLING_INTERVAL_SEC: u64 = 180;
 
 static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
     bearer_access_token: Some(
@@ -18,29 +11,3 @@ static CONFIG: LazyLock<Configuration> = LazyLock::new(|| Configuration {
     ),
     ..Default::default()
 });
-
-pub async fn start_polling(repo: Repository) -> Result<()> {
-    tokio::spawn(async move {
-        // run polling at even intervals
-        let mut interval = time::interval(Duration::new(POLLING_INTERVAL_SEC, 0));
-        interval.tick().await;
-
-        // get last timestamp when this app restarts
-        let mut last_checkpoint = if let Ok(point) = repo.get_time().await {
-            point
-        } else {
-            error!("Couldn't get last checkpoint!");
-            Utc::now()
-        };
-
-        loop {
-            interval.tick().await;
-
-            info!("start polling ...");
-            let _ = message::collect(&repo, &CONFIG, &mut last_checkpoint).await;
-        }
-    })
-    .await?;
-
-    Ok(())
-}
