@@ -1,31 +1,31 @@
-use crate::{infra::repo::Repository, usecase::message_poller::MessagePoller};
+use crate::{domain::traq_message::TraqMessage, usecase::message_poller::MessagePoller};
 use chrono::{DateTime, SecondsFormat, Utc};
 use log::{error, info};
-use std::time::Duration;
-use tokio::time;
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
 const MESSAGE_LIMIT: i32 = 100;
 
-pub struct TraqMessagePoller {
-    repo: Repository,
+pub struct TraqMessageCollector {}
+
+impl TraqMessageCollector {
+    pub fn new() -> Self {
+        Self {}
+    }
 }
 
-impl TraqMessagePoller {
-    pub fn new(repo: Repository) -> Self {
-        Self { repo }
-    }
-
-    async fn poll_messages(
+impl MessagePoller for TraqMessageCollector {
+    async fn collect_messages(
         &self,
         last_checkpoint: &mut DateTime<Utc>,
-    ) -> Result<Vec<String>, String> {
+    ) -> Result<Vec<TraqMessage>, String> {
         let cfg = Configuration {
             bearer_access_token: Some(std::env::var("BOT_ACCESS_TOKEN").unwrap_or_default()),
             ..Default::default()
         };
 
         let now = Utc::now();
+
+        let messages = vec![];
 
         for page in 0.. {
             let result = search_messages(
@@ -68,6 +68,7 @@ impl TraqMessagePoller {
 
                 // 最新メッセージのタイムスタンプを取得
                 *last_checkpoint = hit_messages
+                    .clone()
                     .last()
                     .unwrap()
                     .created_at
@@ -82,32 +83,6 @@ impl TraqMessagePoller {
             }
         }
 
-        // Simulate message collection
-        Ok(vec!["message1".into(), "message2".into()])
-    }
-}
-
-impl MessagePoller for TraqMessagePoller {
-    async fn poll_messages(&self, polling_interval: u64) -> Result<(), String> {
-        let mut interval = time::interval(Duration::from_secs(polling_interval));
-
-        let mut last_checkpoint = match self.repo.get_time().await {
-            Ok(point) => point,
-            Err(_) => {
-                error!("Couldn't get last checkpoint!");
-                Utc::now()
-            }
-        };
-
-        loop {
-            interval.tick().await;
-
-            info!("start polling ...");
-            last_checkpoint = Utc::now();
-
-            self.poll_messages(&mut last_checkpoint).await?;
-
-            self.repo.record_time(last_checkpoint).await;
-        }
+        Ok(messages)
     }
 }
