@@ -1,7 +1,12 @@
 use anyhow::{Ok, Result};
-use infra::{handler::Handler, repo::Repository, traq};
+use infra::{handler::Handler, repo::Repository};
 use log::info;
 use tokio::net::TcpListener;
+
+use crate::{
+    infra::traq::message_poller_impl::TraqMessagePoller,
+    usecase::message_poller::MessagePollerService,
+};
 
 mod domain;
 mod infra;
@@ -28,7 +33,10 @@ async fn main() -> Result<()> {
     });
 
     // setup message poller
-    traq::start_polling(repo).await?;
+    MessagePollerService::new(TraqMessagePoller::new(repo))
+        .start_polling()
+        .await
+        .map_err(anyhow::Error::msg)?;
 
     endpoint_handler.await?;
 
