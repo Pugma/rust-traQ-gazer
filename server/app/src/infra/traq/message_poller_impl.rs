@@ -5,7 +5,6 @@ use std::time::Duration;
 use tokio::time;
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
-const POLLING_INTERVAL_SEC: u64 = 180;
 const MESSAGE_LIMIT: i32 = 100;
 
 pub struct TraqMessagePoller {
@@ -89,8 +88,8 @@ impl TraqMessagePoller {
 }
 
 impl MessagePoller for TraqMessagePoller {
-    async fn poll_messages(&self) -> Result<(), String> {
-        let mut interval = time::interval(Duration::from_secs(POLLING_INTERVAL_SEC));
+    async fn poll_messages(&self, polling_interval: u64) -> Result<(), String> {
+        let mut interval = time::interval(Duration::from_secs(polling_interval));
 
         let mut last_checkpoint = match self.repo.get_time().await {
             Ok(point) => point,
