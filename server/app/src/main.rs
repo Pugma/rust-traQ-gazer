@@ -1,12 +1,11 @@
+use crate::{
+    infra::traq::message_collector::TraqMessageCollector,
+    usecase::message_poller::MessagePollerService,
+};
 use anyhow::{Ok, Result};
 use infra::{handler::Handler, repo::Repository};
 use log::info;
 use tokio::net::TcpListener;
-
-use crate::{
-    infra::traq::message_poller_impl::TraqMessagePoller,
-    usecase::message_poller::MessagePollerService,
-};
 
 mod domain;
 mod infra;
@@ -32,8 +31,7 @@ async fn main() -> Result<()> {
             .expect("Failed to open the endpoints!");
     });
 
-    // setup message poller
-    MessagePollerService::new(TraqMessagePoller::new(repo), 180)
+    MessagePollerService::new(repo, TraqMessageCollector::new(), 180)
         .start_polling()
         .await
         .map_err(anyhow::Error::msg)?;
