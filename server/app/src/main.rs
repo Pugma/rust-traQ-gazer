@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
     });
 
     // setup message poller
-    MessagePollerService::new(TraqMessagePoller::new(repo))
+    MessagePollerService::new(TraqMessagePoller::new(repo), 180)
         .start_polling()
         .await
         .map_err(anyhow::Error::msg)?;
