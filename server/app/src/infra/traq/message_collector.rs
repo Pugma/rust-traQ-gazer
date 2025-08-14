@@ -52,9 +52,12 @@ impl MessagePoller for TraqMessageCollector {
             )
             .await;
 
-            debug!("search_messages result: {:?}", result);
-
             let result = if let Ok(result) = result {
+                debug!(
+                    "search_messages succeeded: total_hits={}, hits={}",
+                    result.total_hits,
+                    result.hits.len()
+                );
                 result
             } else {
                 error!("Couldn't get messages from traQ!");
