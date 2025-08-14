@@ -3,7 +3,7 @@ use crate::{
     usecase::message_poller::MessagePoller,
 };
 use chrono::{DateTime, SecondsFormat, Utc};
-use log::{error, info};
+use log::{debug, error, info};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
 const MESSAGE_LIMIT: i32 = 100;
@@ -51,6 +51,8 @@ impl MessagePoller for TraqMessageCollector {
                 Some("-createdAt"),
             )
             .await;
+
+            debug!("search_messages result: {:?}", result);
 
             let result = if let Ok(result) = result {
                 result
