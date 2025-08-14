@@ -1,4 +1,7 @@
-use crate::{domain::traq_message::TraqMessage, usecase::message_poller::MessagePoller};
+use crate::{
+    config::traq::TRAQ_CONFIG, domain::traq_message::TraqMessage,
+    usecase::message_poller::MessagePoller,
+};
 use chrono::{DateTime, SecondsFormat, Utc};
 use log::{error, info};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
@@ -19,7 +22,7 @@ impl MessagePoller for TraqMessageCollector {
         last_checkpoint: &mut DateTime<Utc>,
     ) -> Result<Vec<TraqMessage>, String> {
         let cfg = Configuration {
-            bearer_access_token: Some(std::env::var("BOT_ACCESS_TOKEN").unwrap_or_default()),
+            bearer_access_token: Some(TRAQ_CONFIG.bot_access_token.clone()),
             ..Default::default()
         };
 

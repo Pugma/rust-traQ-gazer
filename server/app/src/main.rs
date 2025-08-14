@@ -7,6 +7,7 @@ use infra::{handler::Handler, repo::Repository};
 use log::info;
 use tokio::net::TcpListener;
 
+mod config;
 mod domain;
 mod infra;
 mod usecase;
