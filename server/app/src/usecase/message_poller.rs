@@ -40,8 +40,6 @@ impl MessagePollerService {
             interval.tick().await;
 
             info!("start polling ...");
-            last_checkpoint = Utc::now();
-
             self.collector
                 .collect_messages(&mut last_checkpoint)
                 .await?;
