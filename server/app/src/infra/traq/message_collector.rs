@@ -3,7 +3,7 @@ use crate::{
     usecase::message_poller::MessagePoller,
 };
 use chrono::{DateTime, SecondsFormat, Utc};
-use log::{error, info};
+use log::{debug, error, info};
 use traq::apis::{configuration::Configuration, message_api::search_messages};
 
 const MESSAGE_LIMIT: i32 = 100;
@@ -53,6 +53,11 @@ impl MessagePoller for TraqMessageCollector {
             .await;
 
             let result = if let Ok(result) = result {
+                debug!(
+                    "search_messages succeeded: total_hits={}, hits={}",
+                    result.total_hits,
+                    result.hits.len()
+                );
                 result
             } else {
                 error!("Couldn't get messages from traQ!");
