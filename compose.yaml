@@ -9,7 +9,7 @@ services:
         condition: service_healthy
     environment:
       RUST_LOG: DEBUG
-      BOT_ACCESS_TOKEN: ""
+      TRAQ_BOT_ACCESS_TOKEN: ""
       DB_DATABASE: mariadb
       DB_HOST: mariadb
       DB_PASSWORD: password
@@ -17,7 +17,7 @@ services:
       DB_USERNAME: user
 
   mariadb:
-    image: mariadb:11.5
+    image: mariadb:11.8
     container_name: mariadb
     environment:
       MARIADB_ROOT_PASSWORD: password
