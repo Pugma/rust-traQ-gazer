@@ -1,10 +1,11 @@
+use chrono::{DateTime, SecondsFormat, Utc};
+use log::{debug, error, info};
+use traq::apis::message_api::search_messages;
+
 use crate::{
     config::traq::TRAQ_CONFIG, domain::traq_message::TraqMessage,
     usecase::message_poller::MessagePoller,
 };
-use chrono::{DateTime, SecondsFormat, Utc};
-use log::{debug, error, info};
-use traq::apis::{configuration::Configuration, message_api::search_messages};
 
 const MESSAGE_LIMIT: i32 = 100;
 
@@ -21,10 +22,7 @@ impl MessagePoller for TraqMessageCollector {
         &self,
         last_checkpoint: &mut DateTime<Utc>,
     ) -> Result<Vec<TraqMessage>, String> {
-        let cfg = Configuration {
-            bearer_access_token: Some(TRAQ_CONFIG.bot_access_token.clone()),
-            ..Default::default()
-        };
+        let cfg = TRAQ_CONFIG.options();
 
         let now = Utc::now();
 
