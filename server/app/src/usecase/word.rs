@@ -6,11 +6,15 @@ use crate::{
     infra::repo::Repository,
 };
 
-struct WordService {
+pub struct WordService {
     repo: Repository,
 }
 
 impl WordService {
+    pub fn new(repo: Repository) -> Self {
+        Self { repo }
+    }
+
     pub async fn register_word(
         &self,
         user_id: UserId,
