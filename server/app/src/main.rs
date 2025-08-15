@@ -1,11 +1,11 @@
 use crate::{
     infra::traq::message_collector::TraqMessageCollector,
-    usecase::message_poller::MessagePollerService,
+    usecase::{BackgroundTasks, UseCase, message_poller::MessagePollerService},
 };
 use anyhow::{Ok, Result};
 use infra::{handler::Handler, repo::Repository};
 use log::info;
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, spawn, try_join};
 
 mod config;
 mod domain;
@@ -21,6 +21,8 @@ async fn main() -> Result<()> {
     let repo = Repository::setup().await.expect("Failed to access the DB!");
     info!("Made connections to the DB correctly!");
 
+    let usecase = UseCase::new(repo.clone());
+
     // setup API server
     let listener = TcpListener::bind("0.0.0.0:3000").await?;
     let app = openapi::server::new(Handler { repo: repo.clone() });
@@ -32,10 +34,12 @@ async fn main() -> Result<()> {
             .expect("Failed to open the endpoints!");
     });
 
-    MessagePollerService::new(repo, TraqMessageCollector::new(), 180)
-        .start_polling()
-        .await
-        .map_err(anyhow::Error::msg)?;
+    spawn(async move {
+        info!("Starting background tasks ...");
+        BackgroundTasks::new(repo, TraqMessageCollector::new())
+            .start()
+            .await;
+    });
 
     endpoint_handler.await?;
 
