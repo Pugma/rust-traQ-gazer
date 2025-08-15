@@ -1,1 +1,1 @@
-docker stop rust-gazer-db && docker rm rust-gazer-db
+docker compose down --volumes --remove-orphans
