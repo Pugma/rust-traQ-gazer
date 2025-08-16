@@ -1,4 +1,5 @@
-use sqlx::{query, query_as};
+use anyhow::Result;
+use sqlx::query;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -9,7 +10,7 @@ use crate::domain::{
 use super::Repository;
 
 impl WordRepository for Repository {
-    async fn insert_word(&self, word: NewWord) -> Result<(), String> {
+    async fn insert_word(&self, word: NewWord) -> Result<()> {
         let result = query!(
             r#"
                 INSERT INTO 
@@ -27,11 +28,11 @@ impl WordRepository for Repository {
 
         match result {
             Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
+            Err(err) => Err(err.into()),
         }
     }
 
-    async fn get_all_words(&self) -> Result<Vec<Word>, String> {
+    async fn get_all_words(&self) -> Result<Vec<Word>> {
         let rows = query!(
             r#"
                 SELECT 
@@ -70,14 +71,11 @@ impl WordRepository for Repository {
                     .collect();
                 Ok(words)
             }
-            Err(err) => Err(err.to_string()),
+            Err(err) => Err(err.into()),
         }
     }
 
-    async fn find_words_by_user_id(
-        &self,
-        user_id: &UserId,
-    ) -> std::result::Result<Vec<Word>, String> {
+    async fn find_words_by_user_id(&self, user_id: &UserId) -> Result<Vec<Word>> {
         let rows = query!(
             r#"
                 SELECT 
@@ -111,12 +109,12 @@ impl WordRepository for Repository {
                     .collect();
                 Ok(words)
             }
-            Err(err) => Err(err.to_string()),
+            Err(err) => Err(err.into()),
         }
     }
 
-    async fn delete_word(&self, word_id: &WordId) -> Result<(), String> {
-        let rows = query!(
+    async fn delete_word(&self, word_id: &WordId) -> Result<()> {
+        query!(
             r#"
                 DELETE FROM `words`
                 WHERE
@@ -125,11 +123,8 @@ impl WordRepository for Repository {
             word_id
         )
         .execute(&self.pool)
-        .await;
+        .await?;
 
-        match rows {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
+        Ok(())
     }
 }
