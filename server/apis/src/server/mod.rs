@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use axum::{body::Body, extract::*, response::Response, routing::*};
-use axum_extra::extract::{CookieJar, Host};
+use axum_extra::extract::{CookieJar, Host, Query as QueryExtra};
 use bytes::Bytes;
 use http::{header::CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, Method, StatusCode};
 use tracing::error;
@@ -248,7 +248,7 @@ async fn stamps_get<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  Query(query_params): Query<models::StampsGetQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::StampsGetQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -455,7 +455,7 @@ async fn get_today_trending_words<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  Query(query_params): Query<models::GetTodayTrendingWordsQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::GetTodayTrendingWordsQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -546,7 +546,7 @@ async fn get_trending_words_for_day<I, A, E>(
   host: Host,
   cookies: CookieJar,
   Path(path_params): Path<models::GetTrendingWordsForDayPathParams>,
-  Query(query_params): Query<models::GetTrendingWordsForDayQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForDayQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -640,7 +640,7 @@ async fn get_trending_words_for_month<I, A, E>(
   host: Host,
   cookies: CookieJar,
   Path(path_params): Path<models::GetTrendingWordsForMonthPathParams>,
-  Query(query_params): Query<models::GetTrendingWordsForMonthQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForMonthQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -734,7 +734,7 @@ async fn get_trending_words_for_year<I, A, E>(
   host: Host,
   cookies: CookieJar,
   Path(path_params): Path<models::GetTrendingWordsForYearPathParams>,
-  Query(query_params): Query<models::GetTrendingWordsForYearQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForYearQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -823,7 +823,7 @@ async fn words_get<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  Query(query_params): Query<models::WordsGetQueryParams>,
+  QueryExtra(query_params): QueryExtra<models::WordsGetQueryParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
