@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `trap_id` VARCHAR(32) NOT NULL,
-  `traq_uuid` CHAR(36) NOT NULL,
+  `traq_uuid` BINARY(16) NOT NULL,
   `is_bot` BOOLEAN NOT NULL,
   `is_expired` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 CREATE TABLE IF NOT EXISTS `words` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
-  `uuid` BINARY(36) NOT NULL,
+  `uuid` BINARY(16) NOT NULL,
   `user_id` BIGINT(8) NOT NULL,
   `value` VARCHAR(50) NOT NULL,
   `is_regex` BOOLEAN NOT NULL,
