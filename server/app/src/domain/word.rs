@@ -1,4 +1,5 @@
 use crate::domain::user::UserId;
+use anyhow::{Result, anyhow};
 use uuid::Uuid;
 
 #[derive(sqlx::Type)]
@@ -14,12 +15,12 @@ pub struct WordUuid(pub Uuid);
 pub struct WordValue(pub String);
 
 impl WordValue {
-    pub fn new(value: String) -> Result<Self, String> {
+    pub fn new(value: String) -> Result<Self> {
         if value.is_empty() {
-            return Err("word cannot be empty".to_string());
+            return Err(anyhow!("word cannot be empty"));
         }
         if value.chars().count() > 50 {
-            return Err("word must be 50 characters or less".to_string());
+            return Err(anyhow!("word must be 50 characters or less"));
         }
         Ok(WordValue(value))
     }
@@ -38,7 +39,7 @@ impl NewWord {
         value: String,
         is_regex: bool,
         excluded_message_user_ids: Vec<UserId>,
-    ) -> Result<Self, String> {
+    ) -> Result<Self> {
         Ok(NewWord {
             uuid: WordUuid(Uuid::new_v4()),
             user_id,
@@ -72,8 +73,8 @@ pub struct Word {
 }
 
 pub trait WordRepository {
-    async fn insert_word(&self, word: NewWord) -> Result<(), String>;
-    async fn get_all_words(&self) -> Result<Vec<Word>, String>;
-    async fn find_words_by_user_id(&self, user_id: &UserId) -> Result<Vec<Word>, String>;
-    async fn delete_word(&self, word_id: &WordId) -> Result<(), String>;
+    async fn insert_word(&self, word: NewWord) -> Result<()>;
+    async fn get_all_words(&self) -> Result<Vec<Word>>;
+    async fn find_words_by_user_id(&self, user_id: &UserId) -> Result<Vec<Word>>;
+    async fn delete_word(&self, word_id: &WordId) -> Result<()>;
 }
