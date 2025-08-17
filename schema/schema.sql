@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `display_name` VARCHAR(32) NOT NULL,
-  `trap_id` VARCHAR(32) NOT NULL,
-  `traq_uuid` BINARY(16) NOT NULL,
+  `trap_id` VARCHAR(32) NOT NULL UNIQUE,
+  `traq_uuid` BINARY(16) NOT NULL UNIQUE,
   `is_bot` BOOLEAN NOT NULL,
   `is_expired` BOOLEAN NOT NULL,
   PRIMARY KEY (`id`)
