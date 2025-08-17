@@ -25,7 +25,7 @@ impl UserSynchronizerService {
         let job = JobBuilder::new()
             .with_timezone(chrono_tz::Asia::Tokyo)
             .with_cron_job_type()
-            .with_schedule("0 0 4 * * * *")?
+            .with_schedule("0 0 4 * * *")?
             .with_run_async(Box::new(move |_uuid, _l| {
                 let f = uf.clone();
                 let r = repo.clone();
