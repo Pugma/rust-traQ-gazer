@@ -1,11 +1,11 @@
 use crate::{
-    infra::traq::message_collector::TraqMessageCollector,
-    usecase::{BackgroundTasks, UseCase, message_poller::MessagePollerService},
+    infra::traq::{message_collector::TraqMessageCollector, user_fetcher::TraqUserFetcher},
+    usecase::{BackgroundTasks, UseCase},
 };
 use anyhow::{Ok, Result};
 use infra::{handler::Handler, repo::Repository};
 use log::info;
-use tokio::{net::TcpListener, spawn, try_join};
+use tokio::{net::TcpListener, spawn};
 
 mod config;
 mod domain;
@@ -36,7 +36,7 @@ async fn main() -> Result<()> {
 
     spawn(async move {
         info!("Starting background tasks ...");
-        BackgroundTasks::new(repo, TraqMessageCollector::new())
+        BackgroundTasks::new(repo, TraqMessageCollector::new(), TraqUserFetcher::new())
             .start()
             .await;
     });

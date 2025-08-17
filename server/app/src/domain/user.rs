@@ -5,6 +5,13 @@ use uuid::Uuid;
 #[sqlx(transparent)]
 pub struct UserId(pub i64);
 
+pub struct NewUser {
+    pub display_name: String,
+    pub traq_id: String,
+    pub traq_uuid: Uuid,
+    pub is_bot: bool,
+}
+
 pub struct User {
     id: UserId,
     display_name: String,
