@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use log::error;
-use tokio_cron_scheduler::JobBuilder;
+use tokio_cron_scheduler::{Job, JobBuilder};
 
 use crate::{
     domain::user::{NewUser, UserRepository},
@@ -19,10 +19,10 @@ impl UserSynchronizerService {
         Self { repo, user_fetcher }
     }
 
-    pub async fn sync_with_traq(&self) -> Result<()> {
+    pub async fn sync_with_traq(&self) -> Result<Job> {
         let uf = self.user_fetcher.clone();
         let repo = self.repo.clone();
-        let job = JobBuilder::new()
+        let job: tokio_cron_scheduler::Job = JobBuilder::new()
             .with_timezone(chrono_tz::Asia::Tokyo)
             .with_cron_job_type()
             .with_schedule("0 0 4 * * *")?
@@ -48,7 +48,7 @@ impl UserSynchronizerService {
             }))
             .build()?;
 
-        Ok(())
+        Ok(job)
     }
 }
 

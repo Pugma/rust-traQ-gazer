@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use tokio::{spawn, try_join};
+use anyhow::Result;
+use tokio::{join, spawn};
+use tokio_cron_scheduler::JobScheduler;
 
 use crate::{
     infra::{
@@ -42,15 +44,24 @@ impl BackgroundTasks {
         user_fetcher: TraqUserFetcher,
     ) -> Self {
         Self {
-            user_synchronizer: UserSynchronizerService::new(Arc::new(repo.clone()), Arc::new(user_fetcher)),
+            user_synchronizer: UserSynchronizerService::new(
+                Arc::new(repo.clone()),
+                Arc::new(user_fetcher),
+            ),
             message_poller: MessagePollerService::new(repo, message_collector, 180),
         }
     }
 
-    pub async fn start(self) -> () {
-        let a = spawn(async move { self.user_synchronizer.sync_with_traq().await });
+    pub async fn start(self) -> Result<()> {
+        let scheduler = JobScheduler::new().await?;
+        let sync = self.user_synchronizer.sync_with_traq().await?;
         let b = spawn(async move { self.message_poller.start_polling().await });
 
-        let _ = try_join!(a, b);
+        scheduler.add(sync).await?;
+        scheduler.start().await?;
+
+        let _ = join!(b);
+
+        Ok(())
     }
 }
