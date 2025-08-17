@@ -21,7 +21,7 @@ pub struct User {
 }
 
 pub trait UserRepository {
-    async fn sync_with_traq(&self) -> Result<()>;
+    async fn upsert_users(&self, users: Vec<NewUser>) -> Result<()>;
     async fn find_by_id(&self, user_id: &UserId) -> Result<User>;
     async fn find_by_traq_uuid(&self, traq_uuid: Uuid) -> Result<User>;
 }
