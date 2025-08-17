@@ -35,3 +35,12 @@ services:
       interval: 1s
       timeout: 10s
       retries: 60
+
+  adminer:
+    image: adminer:5.3.0
+    container_name: adminer
+    restart: always
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
