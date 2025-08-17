@@ -5,6 +5,7 @@ use crate::config::repo::DB_CONFIG;
 
 mod polling;
 mod stamps;
+mod user;
 mod word;
 
 pub mod constant {
