@@ -1,7 +1,14 @@
-use tokio::{spawn, try_join};
+use std::sync::Arc;
+
+use anyhow::Result;
+use tokio::{join, spawn};
+use tokio_cron_scheduler::JobScheduler;
 
 use crate::{
-    infra::{repo::Repository, traq::message_collector::TraqMessageCollector},
+    infra::{
+        repo::Repository,
+        traq::{message_collector::TraqMessageCollector, user_fetcher::TraqUserFetcher},
+    },
     usecase::{
         message_poller::MessagePollerService, user_synchronizer::UserSynchronizerService,
         word::WordService,
@@ -11,7 +18,7 @@ use crate::{
 pub mod message_poller;
 mod message_processor;
 mod stamp;
-mod user_synchronizer;
+pub mod user_synchronizer;
 mod word;
 
 pub struct UseCase {
@@ -31,17 +38,30 @@ pub struct BackgroundTasks {
     message_poller: MessagePollerService,
 }
 impl BackgroundTasks {
-    pub fn new(repo: Repository, collector: TraqMessageCollector) -> Self {
+    pub fn new(
+        repo: Repository,
+        message_collector: TraqMessageCollector,
+        user_fetcher: TraqUserFetcher,
+    ) -> Self {
         Self {
-            user_synchronizer: UserSynchronizerService::new(repo.clone()),
-            message_poller: MessagePollerService::new(repo, collector, 180),
+            user_synchronizer: UserSynchronizerService::new(
+                Arc::new(repo.clone()),
+                Arc::new(user_fetcher),
+            ),
+            message_poller: MessagePollerService::new(repo, message_collector, 180),
         }
     }
 
-    pub async fn start(self) -> () {
-        let a = spawn(async move { self.user_synchronizer.sync_with_traq().await });
+    pub async fn start(self) -> Result<()> {
+        let scheduler = JobScheduler::new().await?;
+        let sync = self.user_synchronizer.sync_with_traq().await?;
         let b = spawn(async move { self.message_poller.start_polling().await });
 
-        let _ = try_join!(a, b);
+        scheduler.add(sync).await?;
+        scheduler.start().await?;
+
+        let _ = join!(b);
+
+        Ok(())
     }
 }
