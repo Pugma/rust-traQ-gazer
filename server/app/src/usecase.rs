@@ -42,7 +42,7 @@ impl BackgroundTasks {
         user_fetcher: TraqUserFetcher,
     ) -> Self {
         Self {
-            user_synchronizer: UserSynchronizerService::new(repo.clone(), Arc::new(user_fetcher)),
+            user_synchronizer: UserSynchronizerService::new(Arc::new(repo.clone()), Arc::new(user_fetcher)),
             message_poller: MessagePollerService::new(repo, message_collector, 180),
         }
     }
