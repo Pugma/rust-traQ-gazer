@@ -20,7 +20,7 @@ impl UserRepository for Repository {
             let mut qb = QueryBuilder::<MySql>::new(
                 r#"
             INSERT INTO
-                `users` (`display_name`, `traq_id`, `traq_uuid`, `is_bot`)
+                `users` (`display_name`, `traq_id`, `traq_uuid`, `is_bot`, `is_expired`)
             "#,
             );
 
@@ -29,6 +29,7 @@ impl UserRepository for Repository {
                 b.push_bind(&u.traq_id);
                 b.push_bind(&u.traq_uuid);
                 b.push_bind(&u.is_bot);
+                b.push_bind(&u.is_expired);
             });
 
             qb.push(
@@ -37,7 +38,8 @@ impl UserRepository for Repository {
                     `display_name` = VALUES(`display_name`),
                     `traq_id` = VALUES(`traq_id`),
                     `traq_uuid` = VALUES(`traq_uuid`),
-                    `is_bot` = VALUES(`is_bot`)
+                    `is_bot` = VALUES(`is_bot`),
+                    `is_expired` = VALUES(`is_expired`)
                 "#,
             );
 

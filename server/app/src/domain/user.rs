@@ -10,6 +10,7 @@ pub struct NewUser {
     pub traq_id: String,
     pub traq_uuid: Uuid,
     pub is_bot: bool,
+    pub is_expired: bool,
 }
 
 pub struct User {
@@ -18,6 +19,7 @@ pub struct User {
     traq_id: String,
     traq_uuid: Uuid,
     is_bot: bool,
+    is_expired: bool,
 }
 
 pub trait UserRepository {

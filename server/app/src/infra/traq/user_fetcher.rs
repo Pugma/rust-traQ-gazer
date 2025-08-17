@@ -1,6 +1,9 @@
 use anyhow::Result;
 use log::info;
-use traq::apis::user_api;
+use traq::{
+    apis::user_api,
+    models::{User, UserAccountState},
+};
 
 use crate::{
     config::traq::TRAQ_CONFIG, domain::user::NewUser, usecase::user_synchronizer::UserFetcher,
@@ -27,6 +30,7 @@ impl UserFetcher for TraqUserFetcher {
                 traq_id: u.name,
                 traq_uuid: u.id,
                 is_bot: u.bot,
+                is_expired: u.state == UserAccountState::Deactivated,
             })
             .collect();
 
