@@ -17,7 +17,7 @@ services:
       DB_USERNAME: user
 
   mariadb:
-    image: mariadb:11.8
+    image: mariadb:12.0
     container_name: mariadb
     environment:
       MARIADB_ROOT_PASSWORD: password
