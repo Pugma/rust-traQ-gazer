@@ -14,12 +14,12 @@ pub struct NewUser {
 }
 
 pub struct User {
-    id: UserId,
-    display_name: String,
-    traq_id: String,
-    traq_uuid: Uuid,
-    is_bot: bool,
-    is_expired: bool,
+    pub id: UserId,
+    pub display_name: String,
+    pub traq_id: String,
+    pub traq_uuid: Uuid,
+    pub is_bot: bool,
+    pub is_expired: bool,
 }
 
 pub trait UserRepository {
