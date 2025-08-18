@@ -16,7 +16,9 @@ RUN --mount=type=bind,source=/server/app/src,target=/app/server/app/src \
     cp /app/server/target/release/rust-traQ-gazer /tmp/rust-traQ-gazer
 
 # 最終的な配信用
-FROM gcr.io/distroless/cc-debian12
+FROM gcr.io/distroless/cc-debian12:nonroot
+
+USER nonroot
 
 WORKDIR /
 
