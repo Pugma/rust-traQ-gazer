@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: rust-traq-gazer:latest
     container_name: gazer
     depends_on:
       mariadb:
