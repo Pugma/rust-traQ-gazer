@@ -56,6 +56,10 @@ impl UserRepository for Repository {
         unimplemented!()
     }
 
+    async fn find_by_traq_id(&self, traq_id: &str) -> Result<User> {
+        unimplemented!()
+    }
+
     async fn find_by_traq_uuid(&self, traq_uuid: Uuid) -> Result<User> {
         unimplemented!()
     }
