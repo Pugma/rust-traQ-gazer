@@ -28,9 +28,9 @@ CREATE TABLE IF NOT EXISTS `word_subscriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `word_excluded_users` (
-  `word_id` BIGINT(8) NOT NULL,
+  `subs_id` BIGINT(8) NOT NULL,
   `user_id` BIGINT(8) NOT NULL,
-  FOREIGN KEY (`word_id`) REFERENCES `word_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`subs_id`) REFERENCES `word_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `stamp_subscriptions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `stamp_excluded_users` (
-  `stamp_id` BIGINT(8) NOT NULL,
+  `subs_id` BIGINT(8) NOT NULL,
   `user_id` BIGINT(8) NOT NULL,
-  FOREIGN KEY (`stamp_id`) REFERENCES `stamp_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`subs_id`) REFERENCES `stamp_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
