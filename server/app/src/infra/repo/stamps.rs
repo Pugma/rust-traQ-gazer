@@ -9,7 +9,7 @@ use crate::domain::{
 use super::Repository;
 
 impl StampRepository for Repository {
-    async fn insert_stamp(&self, stamp: NewStamp) -> Result<()> {
+    async fn insert_stamp(&self, stamp: &NewStamp) -> Result<()> {
         let result = query!(
             r#"
                 INSERT INTO
