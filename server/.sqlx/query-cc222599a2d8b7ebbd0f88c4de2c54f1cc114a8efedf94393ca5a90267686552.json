@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n                INSERT INTO\n                    `stamps` (`stamp_uuid`, `user_id`, `word`)\n                VALUES\n                    (?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "cc222599a2d8b7ebbd0f88c4de2c54f1cc114a8efedf94393ca5a90267686552"
+}
