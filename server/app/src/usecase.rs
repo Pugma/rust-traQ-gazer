@@ -10,8 +10,8 @@ use crate::{
         traq::{message_collector::TraqMessageCollector, user_fetcher::TraqUserFetcher},
     },
     usecase::{
-        message_poller::MessagePollerService, user_synchronizer::UserSynchronizerService,
-        word::WordService,
+        message_poller::MessagePollerService, message_processor::MessageProcessorService,
+        user_synchronizer::UserSynchronizerService, word::WordService,
     },
 };
 
@@ -22,12 +22,14 @@ pub mod user_synchronizer;
 mod word;
 
 pub struct UseCase {
+    pub message_processor: MessageProcessorService,
     pub word: WordService,
 }
 
 impl UseCase {
     pub fn new(repo: Repository) -> Self {
         Self {
+            message_processor: MessageProcessorService::new(),
             word: WordService::new(repo.clone()),
         }
     }
