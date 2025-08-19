@@ -1,7 +1,9 @@
 use anyhow::Result;
 use uuid::Uuid;
 
-pub struct TraqStampId(Uuid);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct TraqStampId(pub Uuid);
 
 pub struct TraqStampName(String);
 
