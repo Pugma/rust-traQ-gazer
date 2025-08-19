@@ -1,3 +1,4 @@
+---------- external items ----------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `display_name` VARCHAR(32) NOT NULL,
@@ -8,9 +9,17 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `words` (
+CREATE TABLE IF NOT EXISTS `traq_stamps` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
-  `uuid` BINARY(16) NOT NULL,
+  `name` VARCHAR(32) NOT NULL,
+  `traq_uuid` BINARY(16) NOT NULL UNIQUE,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+---------- internal items ----------
+CREATE TABLE IF NOT EXISTS `word_subscriptions` (
+  `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
+  `uuid` BINARY(16) NOT NULL UNIQUE,
   `user_id` BIGINT(8) NOT NULL,
   `value` VARCHAR(50) NOT NULL,
   `is_regex` BOOLEAN NOT NULL,
@@ -19,30 +28,31 @@ CREATE TABLE IF NOT EXISTS `words` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `word_excluded_users` (
-  `word_id` BIGINT(8) NOT NULL,
+  `subs_id` BIGINT(8) NOT NULL,
   `user_id` BIGINT(8) NOT NULL,
-  FOREIGN KEY (`word_id`) REFERENCES `words`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`subs_id`) REFERENCES `word_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `stamps` (
-  `stamp_id` BIGINT(8) NOT NULL AUTO_INCREMENT,
-  `stamp_uuid` BINARY(16) NOT NULL,
+CREATE TABLE IF NOT EXISTS `stamp_subscriptions` (
+  `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
+  `uuid` BINARY(16) NOT NULL UNIQUE,
   `user_id` BIGINT(8) NOT NULL,
-  `word` VARCHAR(50) NOT NULL,
-  PRIMARY KEY (`stamp_id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  `stamp_id` BIGINT(8) NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`stamp_id`) REFERENCES `traq_stamps`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `stamp_excluded_users` (
-  `stamp_id` BIGINT(8) NOT NULL,
+  `subs_id` BIGINT(8) NOT NULL,
   `user_id` BIGINT(8) NOT NULL,
-  FOREIGN KEY (`stamp_id`) REFERENCES `stamps`(`stamp_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`subs_id`) REFERENCES `stamp_subscriptions`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `polling` (
   `key` INT NOT NULL,
-  `last` datetime NOT NULL,
+  `last` DATETIME NOT NULL,
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n                INSERT INTO \n                    `word_subscriptions` (`uuid`, `user_id`, `value`, `is_regex`)\n                VALUES\n                    (?, ?, ?, ?)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 4
+    },
+    "nullable": []
+  },
+  "hash": "86a7e4c7d3d6bf1e44e0ee30821d381859b569c60fd46bdd43098ebacb45805b"
+}
