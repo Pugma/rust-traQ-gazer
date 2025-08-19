@@ -14,7 +14,7 @@ impl WordRepository for Repository {
         let result = query!(
             r#"
                 INSERT INTO 
-                    `words` (`uuid`, `user_id`, `value`, `is_regex`)
+                    `word_subscriptions` (`uuid`, `user_id`, `value`, `is_regex`)
                 VALUES
                     (?, ?, ?, ?)
             "#,
@@ -39,11 +39,11 @@ impl WordRepository for Repository {
                     `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`,
                     GROUP_CONCAT(`word_excluded_users`.`user_id` SEPARATOR ',') AS `excluded_user_ids`
                 FROM 
-                    `words` w
+                    `word_subscriptions` w
                 LEFT JOIN
                     `word_excluded_users`
                 ON
-                    `w`.`id` = `word_excluded_users`.`word_id`
+                    `w`.`id` = `word_excluded_users`.`subs_id`
                 GROUP BY
                     `w`.`id`
             "#
@@ -81,11 +81,11 @@ impl WordRepository for Repository {
                 SELECT 
                     `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`
                 FROM 
-                    `words` w
+                    `word_subscriptions` w
                 LEFT JOIN
                     `word_excluded_users`
                 ON
-                    `w`.`id` = `word_excluded_users`.`word_id`
+                    `w`.`id` = `word_excluded_users`.`subs_id`
                 WHERE
                     `w`.`user_id` = ?
             "#,
@@ -116,7 +116,7 @@ impl WordRepository for Repository {
     async fn delete_word(&self, word_id: &WordId) -> Result<()> {
         query!(
             r#"
-                DELETE FROM `words`
+                DELETE FROM `word_subscriptions`
                 WHERE
                     `id` = ?
             "#,

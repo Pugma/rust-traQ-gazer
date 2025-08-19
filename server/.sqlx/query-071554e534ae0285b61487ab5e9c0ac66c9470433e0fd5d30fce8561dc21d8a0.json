@@ -1,0 +1,12 @@
+{
+  "db_name": "MySQL",
+  "query": "\n                DELETE FROM `word_subscriptions`\n                WHERE\n                    `id` = ?\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "071554e534ae0285b61487ab5e9c0ac66c9470433e0fd5d30fce8561dc21d8a0"
+}
