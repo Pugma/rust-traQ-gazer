@@ -47,7 +47,7 @@ pub struct Stamp {
 }
 
 pub trait StampRepository {
-    async fn insert_stamp(&self, stamp: NewStamp) -> Result<()>;
+    async fn insert_stamp(&self, stamp: &NewStamp) -> Result<()>;
     async fn get_all_stamps(&self) -> Result<Vec<Stamp>>;
     async fn find_stamps_by_user_id(&self, user_id: &UserId) -> Result<Vec<Stamp>>;
     async fn delete_stamp(&self, stamp_id: &StampId) -> Result<()>;

@@ -18,12 +18,8 @@ impl StampService {
         Self { repo }
     }
 
-    pub async fn register_stamp(
-        &self,
-        user_id: UserId,
-        traq_stamp_id: TraqStampId,
-    ) -> Result<()> {
+    pub async fn register_stamp(&self, user_id: UserId, traq_stamp_id: TraqStampId) -> Result<()> {
         let stamp = NewStamp::new(user_id, traq_stamp_id);
-        self.repo.insert_stamp(stamp).await
+        self.repo.insert_stamp(&stamp).await
     }
 }
