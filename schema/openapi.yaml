@@ -17,37 +17,6 @@ tags:
 
 paths:
   /words:
-    get:
-      tags:
-        - words
-      summary: 全ユーザーの登録単語の閲覧
-      description: |
-        自分に限らず全ユーザーの登録している単語を見ることができる
-        クエリパラメータで特定の単語の登録者や特定ユーザーの登録単語を見ることも可能
-      parameters:
-        - name: word
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
-        - name: trapId
-          in: query
-          description: traP ID で指定する
-          required: false
-          schema:
-            type: string
-            example: "trap"
-      responses:
-        '200':
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Words'
-        '404':
-          description: Not found
     post:
       tags:
         - words
@@ -219,21 +188,6 @@ components:
         - id
         - time
         - excludedUsers
-    
-    Words:
-      type: array
-      items:
-        $ref: '#/components/schemas/Word'
-    Word:
-      type: object
-      properties:
-        trapId:
-          type: string
-        word:
-          type: string
-      required:
-        - trapId
-        - word
     
     NewStamp:
       type: object
