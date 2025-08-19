@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n                SELECT \n                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`\n                FROM \n                    `words` w\n                LEFT JOIN\n                    `word_excluded_users`\n                ON\n                    `w`.`id` = `word_excluded_users`.`word_id`\n                WHERE\n                    `w`.`user_id` = ?\n            ",
+  "query": "\n                SELECT \n                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`,\n                    GROUP_CONCAT(`word_excluded_users`.`user_id` SEPARATOR ',') AS `excluded_user_ids`\n                FROM \n                    `word_subscriptions` w\n                LEFT JOIN\n                    `word_excluded_users`\n                ON\n                    `w`.`id` = `word_excluded_users`.`subs_id`\n                GROUP BY\n                    `w`.`id`\n            ",
   "describe": {
     "columns": [
       {
@@ -47,18 +47,28 @@
           "flags": "NOT_NULL | NO_DEFAULT_VALUE",
           "max_size": 1
         }
+      },
+      {
+        "ordinal": 5,
+        "name": "excluded_user_ids",
+        "type_info": {
+          "type": "Blob",
+          "flags": "",
+          "max_size": 16777216
+        }
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 0
     },
     "nullable": [
       false,
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "8efbc7ec3f2c838b3ac4d03bf527256a3da92a04ddb3f4d9924ab8661c718dac"
+  "hash": "c8581f0a09182196e139261e913f408902363020971ccc2df38c926a7511e997"
 }
