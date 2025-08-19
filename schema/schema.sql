@@ -1,4 +1,4 @@
----------- external items ----------
+-- external items ------------------------------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `display_name` VARCHAR(32) NOT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `traq_stamps` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
----------- internal items ----------
+-- internal items ------------------------------
 CREATE TABLE IF NOT EXISTS `word_subscriptions` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `uuid` BINARY(16) NOT NULL UNIQUE,
