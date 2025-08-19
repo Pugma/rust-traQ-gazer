@@ -4,7 +4,7 @@ use sqlx::{MySql, Pool, mysql::MySqlPoolOptions};
 use crate::config::repo::DB_CONFIG;
 
 mod polling;
-mod stamps;
+pub mod stamps;
 mod user;
 mod word;
 
