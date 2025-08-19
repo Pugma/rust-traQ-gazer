@@ -53,6 +53,6 @@ CREATE TABLE IF NOT EXISTS `stamp_excluded_users` (
 
 CREATE TABLE IF NOT EXISTS `polling` (
   `key` INT NOT NULL,
-  `last` datetime NOT NULL,
+  `last` DATETIME NOT NULL,
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
