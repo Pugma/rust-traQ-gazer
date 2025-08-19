@@ -1,3 +1,4 @@
+---------- external items ----------
 CREATE TABLE IF NOT EXISTS `users` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `display_name` VARCHAR(32) NOT NULL,
@@ -8,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+---------- internal items ----------
 CREATE TABLE IF NOT EXISTS `words` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
   `uuid` BINARY(16) NOT NULL,
