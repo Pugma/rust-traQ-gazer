@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `traq_stamps` (
 ---------- internal items ----------
 CREATE TABLE IF NOT EXISTS `word_subscriptions` (
   `id` BIGINT(8) NOT NULL AUTO_INCREMENT,
-  `uuid` BINARY(16) NOT NULL,
+  `uuid` BINARY(16) NOT NULL UNIQUE,
   `user_id` BIGINT(8) NOT NULL,
   `value` VARCHAR(50) NOT NULL,
   `is_regex` BOOLEAN NOT NULL,
