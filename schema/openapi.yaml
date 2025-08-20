@@ -73,25 +73,8 @@ paths:
     get:
       tags:
         - stamps
-      summary: 全ユーザーの登録スタンプの閲覧
-      description: |
-        自分に限らず全ユーザーの登録しているスタンプを見ることができる
-        クエリパラメータで特定のスタンプの登録者や特定ユーザーの登録スタンプを見ることも可能
-      parameters:
-        - name: stampName
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
-        - name: trapId
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
+      summary: スタンプの一覧
+      description: traQ に登録されているスタンプの一覧を取得
       responses:
         '200':
           description: Successful retrieval
@@ -223,17 +206,18 @@ components:
     Stamps:
       type: array
       items:
-        $ref: '#/components/schemas/Word'
+        $ref: '#/components/schemas/Stamp'
     Stamp:
       type: object
       properties:
-        trapId:
-          type: string
         name:
           type: string
+        stampId:
+          type: string
+          format: uuid
       required:
-        - trapId
         - name
+        - stampId
 
     MyInfo:
       type: object
