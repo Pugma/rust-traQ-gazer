@@ -101,6 +101,21 @@ paths:
         '400':
           description: Invalid input
 
+  /stamps/{stampId}:
+    parameters:
+      - $ref: '#/components/parameters/StampId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    delete:
+      tags:
+        - stamps
+      summary: スタンプの削除
+      description: 自分が登録したスタンプを削除できる。ない場合は404
+      responses:
+        '200':
+          description: Successful deletion
+        '404':
+          description: Not found
+
   /me:
     parameters:
       - $ref: '#/components/parameters/NeoShowcase'
@@ -238,6 +253,14 @@ components:
       in: path
       name: wordId
       description: 単語の uuid で指定する
+      schema:
+        type: string
+        format: uuid
+      required: true
+    StampId:
+      in: path
+      name: stampId
+      description: スタンプの uuid で指定する
       schema:
         type: string
         format: uuid
