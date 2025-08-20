@@ -69,6 +69,27 @@ paths:
         '404':
           description: Not found
 
+  /words/{wordId}/exclusions:
+    parameters:
+      - $ref: '#/components/parameters/WordId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    put:
+      tags:
+        - words
+      summary: 単語の通知除外者の設定
+      description: 指定した単語について、通知しない投稿者一覧を上書きして設定
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcludedUsers'
+      responses:
+        '200':
+          description: Successful edit
+        '404':
+          description: Not found
+
   /stamps:
     get:
       tags:
@@ -113,6 +134,27 @@ paths:
       responses:
         '200':
           description: Successful deletion
+        '404':
+          description: Not found
+
+  /stamps/{stampId}/exclusions:
+    parameters:
+      - $ref: '#/components/parameters/StampId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    put:
+      tags:
+        - stamps
+      summary: スタンプの通知除外者の設定
+      description: 指定したスタンプについて、通知しない投稿者一覧を上書きして設定
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcludedUsers'
+      responses:
+        '200':
+          description: Successful edit
         '404':
           description: Not found
 
