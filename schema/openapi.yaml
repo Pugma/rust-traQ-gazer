@@ -125,12 +125,17 @@ components:
       type: object
       description: sessionからuserIdを取る
       properties:
-        word:
+        wordValue:
           type: string
+          example: "デジタル創作同好会traP"
+        isRegex:
+          type: boolean
+          example: false
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - word
+        - wordValue
+        - isRegex
         - excludedUsers
     ExcludedUsers:
       type: array
@@ -172,12 +177,12 @@ components:
       type: object
       description: sessionからuserIdを取る
       properties:
-        stamp:
+        stampName:
           type: string
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - stamp
+        - stampName
         - excludedUsers
     
     MyStamps:
