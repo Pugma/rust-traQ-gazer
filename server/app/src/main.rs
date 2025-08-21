@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     infra::traq::{message_collector::TraqMessageCollector, user_fetcher::TraqUserFetcher},
     usecase::{BackgroundTasks, UseCase},
@@ -36,9 +38,13 @@ async fn main() -> Result<()> {
 
     spawn(async move {
         info!("Starting background tasks ...");
-        BackgroundTasks::new(repo, TraqMessageCollector::new(), TraqUserFetcher::new())
-            .start()
-            .await;
+        BackgroundTasks::new(
+            repo.clone(),
+            TraqMessageCollector::new(Arc::new(repo)),
+            TraqUserFetcher::new(),
+        )
+        .start()
+        .await;
     });
 
     endpoint_handler.await?;

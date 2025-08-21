@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub mod message_poller;
-mod message_processor;
+pub mod message_processor;
 mod stamp;
 pub mod user_synchronizer;
 mod word;
@@ -33,22 +33,39 @@ impl UseCase {
     }
 }
 
+use crate::{
+    config::traq::TRAQ_CONFIG, infra::traq::notification::TraqNotificationService,
+    usecase::message_processor::MessageProcessor,
+};
+
 pub struct BackgroundTasks {
     user_synchronizer: UserSynchronizerService,
-    message_poller: MessagePollerService,
+    message_poller:
+        MessagePollerService<Repository, TraqNotificationService, Repository>,
 }
+
 impl BackgroundTasks {
     pub fn new(
         repo: Repository,
-        message_collector: TraqMessageCollector,
+        message_collector: TraqMessageCollector<Repository>,
         user_fetcher: TraqUserFetcher,
     ) -> Self {
+        let processor = MessageProcessor::new(
+            Arc::new(repo.clone()),
+            Arc::new(TraqNotificationService::new(TRAQ_CONFIG.options())),
+            Arc::new(repo.clone()),
+        );
         Self {
             user_synchronizer: UserSynchronizerService::new(
                 Arc::new(repo.clone()),
                 Arc::new(user_fetcher),
             ),
-            message_poller: MessagePollerService::new(repo, message_collector, 180),
+            message_poller: MessagePollerService::new(
+                repo.clone(),
+                message_collector,
+                processor,
+                180,
+            ),
         }
     }
 
