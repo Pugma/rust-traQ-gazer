@@ -306,13 +306,13 @@ components:
     Stamp:
       type: object
       properties:
-        name:
+        stampName:
           type: string
         stampId:
           type: string
           format: uuid
       required:
-        - name
+        - stampName
         - stampId
 
     MyInfo:
