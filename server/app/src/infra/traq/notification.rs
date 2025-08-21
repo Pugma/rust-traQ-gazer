@@ -1,6 +1,6 @@
 use crate::domain::notification::{NotificationService, StampNotification, WordNotification};
-use traq::apis::{channel_api, configuration::Configuration};
-use uuid::Uuid;
+use anyhow::Result;
+use traq::apis::configuration::Configuration;
 
 pub struct TraqNotificationService {
     config: Configuration,
@@ -12,11 +12,8 @@ impl TraqNotificationService {
     }
 }
 
-use async_trait::async_trait;
-
-#[async_trait]
 impl NotificationService for TraqNotificationService {
-    async fn send_word_notification(&self, notification: WordNotification) -> Result<(), String> {
+    async fn send_word_notification(&self, notification: WordNotification) -> Result<()> {
         let message = format!(
             "以下の単語がマッチしました: {}\n{}",
             notification
@@ -37,15 +34,11 @@ impl NotificationService for TraqNotificationService {
             embed: Some(embed),
         };
         traq::apis::user_api::post_direct_message(&self.config, &user_id.to_string(), Some(body))
-            .await
-            .map_err(|e| e.to_string())?;
+            .await?;
         Ok(())
     }
 
-    async fn send_stamp_notification(
-        &self,
-        _notification: StampNotification,
-    ) -> Result<(), String> {
+    async fn send_stamp_notification(&self, _notification: StampNotification) -> Result<()> {
         unimplemented!()
     }
 }
