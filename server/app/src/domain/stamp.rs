@@ -1,4 +1,5 @@
 use crate::domain::{traq_stamp::TraqStampId, user::UserId};
+use anyhow::Result;
 use uuid::Uuid;
 
 pub struct StampId(i32);
@@ -44,8 +45,8 @@ pub struct Stamp {
 }
 
 pub trait StampRepository {
-    async fn register(&self, stamp: NewStamp) -> Result<(), String>;
-    async fn find_all(&self) -> Result<Vec<Stamp>, String>;
-    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<Stamp>, String>;
-    async fn delete(&self, stamp_id: &StampId) -> Result<(), String>;
+    async fn register(&self, stamp: NewStamp) -> Result<()>;
+    async fn find_all(&self) -> Result<Vec<Stamp>>;
+    async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<Stamp>>;
+    async fn delete(&self, stamp_id: &StampId) -> Result<()>;
 }
