@@ -1,6 +1,6 @@
 {
   "db_name": "MySQL",
-  "query": "\n                SELECT \n                    `id`, `uuid`, `w`.`user_id`, `value`, `is_regex`,\n                    GROUP_CONCAT(`word_excluded_users`.`user_id` SEPARATOR ',') AS `excluded_user_ids`\n                FROM \n                    `word_subscriptions` w\n                LEFT JOIN\n                    `word_excluded_users`\n                ON\n                    `w`.`id` = `word_excluded_users`.`subs_id`\n                GROUP BY\n                    `w`.`id`\n            ",
+  "query": "\n                SELECT\n                    `id`, `uuid`, `ss`.`user_id`, `stamp_id`,\n                    GROUP_CONCAT(`seu`.`user_id` SEPARATOR ',') AS `excluded_user_ids`\n                FROM\n                    `stamp_subscriptions` AS `ss`\n                LEFT JOIN\n                    `stamp_excluded_users` AS `seu`\n                ON\n                    `seu`.`subs_id` = `ss`.`id`\n                WHERE\n                    `ss`.`user_id` = ?\n                GROUP BY\n                    `ss`.`id`\n            ",
   "describe": {
     "columns": [
       {
@@ -32,24 +32,15 @@
       },
       {
         "ordinal": 3,
-        "name": "value",
+        "name": "stamp_id",
         "type_info": {
-          "type": "VarString",
-          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
-          "max_size": 200
+          "type": "LongLong",
+          "flags": "NOT_NULL | MULTIPLE_KEY | NO_DEFAULT_VALUE",
+          "max_size": 8
         }
       },
       {
         "ordinal": 4,
-        "name": "is_regex",
-        "type_info": {
-          "type": "Tiny",
-          "flags": "NOT_NULL | NO_DEFAULT_VALUE",
-          "max_size": 1
-        }
-      },
-      {
-        "ordinal": 5,
         "name": "excluded_user_ids",
         "type_info": {
           "type": "Blob",
@@ -59,10 +50,9 @@
       }
     ],
     "parameters": {
-      "Right": 0
+      "Right": 1
     },
     "nullable": [
-      false,
       false,
       false,
       false,
@@ -70,5 +60,5 @@
       true
     ]
   },
-  "hash": "c8581f0a09182196e139261e913f408902363020971ccc2df38c926a7511e997"
+  "hash": "31401d99de32ad0243ebfcc12eadd5cec0712b0535b7a14124126aeda18b94b1"
 }

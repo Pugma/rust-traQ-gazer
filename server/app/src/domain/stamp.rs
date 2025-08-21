@@ -2,8 +2,13 @@ use crate::domain::{traq_stamp::TraqStampId, user::UserId};
 use anyhow::Result;
 use uuid::Uuid;
 
-pub struct StampId(i32);
-pub struct StampUuid(Uuid);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct StampId(pub i64);
+
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct StampUuid(pub Uuid);
 
 pub struct NewStamp {
     uuid: StampUuid,
@@ -37,11 +42,11 @@ impl NewStamp {
 }
 
 pub struct Stamp {
-    id: StampId,
-    uuid: StampUuid,
-    user_id: UserId,
-    traq_stamp_id: TraqStampId,
-    excluded_stamp_user_ids: Vec<UserId>,
+    pub id: StampId,
+    pub uuid: StampUuid,
+    pub user_id: UserId,
+    pub traq_stamp_id: TraqStampId,
+    pub excluded_stamp_user_ids: Vec<UserId>,
 }
 
 pub trait StampRepository {
