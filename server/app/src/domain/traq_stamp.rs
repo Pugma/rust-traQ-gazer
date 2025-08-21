@@ -1,13 +1,20 @@
 use anyhow::Result;
 use uuid::Uuid;
 
-pub struct TraqStampId(Uuid);
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct TraqStampId(pub i64);
 
-pub struct TraqStampName(String);
+pub struct TraqStampName(pub String);
+
+#[derive(sqlx::Type)]
+#[sqlx(transparent)]
+pub struct TraqStampUuid(pub Uuid);
 
 pub struct TraqStamp {
-    uuid: TraqStampId,
+    id: TraqStampId,
     name: TraqStampName,
+    uuid: TraqStampUuid,
 }
 
 pub trait TraqStampService {
