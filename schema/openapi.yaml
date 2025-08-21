@@ -91,6 +91,8 @@ paths:
           description: Not found
 
   /stamps:
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
     get:
       tags:
         - stamps
@@ -108,8 +110,6 @@ paths:
         - stamps
       summary: スタンプの登録
       description: 同時に通知の設定もする
-      parameters:
-        - $ref: '#/components/parameters/NeoShowcase'
       requestBody:
         required: true
         content:
