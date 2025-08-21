@@ -17,84 +17,106 @@ use crate::{apis, models};
 pub fn new<I, A, E>(api_impl: I) -> Router
 where
     I: AsRef<A> + Clone + Send + Sync + 'static,
-    A: apis::similar::Similar<E> + apis::stamps::Stamps<E> + apis::trend::Trend<E> + apis::words::Words<E> + Send + Sync + 'static,
+    A: apis::me::Me<E> + apis::stamps::Stamps<E> + apis::words::Words<E> + apis::me_stamps::MeStamps<E> + apis::me_words::MeWords<E> + Send + Sync + 'static,
     E: std::fmt::Debug + Send + Sync + 'static,
     
 {
     // build our application with a route
     Router::new()
-        .route("/api/similar/{user_id}",
-            get(get_users_with_similar_words::<I, A, E>)
+        .route("/api/me",
+            get(me_get::<I, A, E>)
         )
-        .route("/api/similar/{user_id}/recommend",
-            get(get_recommended_words_for_user::<I, A, E>)
+        .route("/api/me/stamps",
+            get(me_stamps_get::<I, A, E>)
+        )
+        .route("/api/me/words",
+            get(me_words_get::<I, A, E>)
         )
         .route("/api/stamps",
             get(stamps_get::<I, A, E>).post(stamps_post::<I, A, E>)
         )
-        .route("/api/trend/day/today",
-            get(get_today_trending_words::<I, A, E>)
+        .route("/api/stamps/{stamp_id}",
+            delete(stamps_stamp_id_delete::<I, A, E>)
         )
-        .route("/api/trend/day/{day}",
-            get(get_trending_words_for_day::<I, A, E>)
-        )
-        .route("/api/trend/month/{month}",
-            get(get_trending_words_for_month::<I, A, E>)
-        )
-        .route("/api/trend/year/{year}",
-            get(get_trending_words_for_year::<I, A, E>)
+        .route("/api/stamps/{stamp_id}/exclusions",
+            put(stamps_stamp_id_exclusions_put::<I, A, E>)
         )
         .route("/api/words",
-            get(words_get::<I, A, E>).post(words_post::<I, A, E>)
-        )
-        .route("/api/words/me",
-            get(words_me_get::<I, A, E>)
+            post(words_post::<I, A, E>)
         )
         .route("/api/words/{word_id}",
-            delete(words_word_id_delete::<I, A, E>).put(words_word_id_put::<I, A, E>)
+            delete(words_word_id_delete::<I, A, E>)
+        )
+        .route("/api/words/{word_id}/exclusions",
+            put(words_word_id_exclusions_put::<I, A, E>)
         )
         .with_state(api_impl)
 }
 
 
 #[tracing::instrument(skip_all)]
-fn get_recommended_words_for_user_validation(
-  path_params: models::GetRecommendedWordsForUserPathParams,
+fn me_get_validation(
+  header_params: models::MeGetHeaderParams,
 ) -> std::result::Result<(
-  models::GetRecommendedWordsForUserPathParams,
+  models::MeGetHeaderParams,
 ), ValidationErrors>
 {
-  path_params.validate()?;
+  header_params.validate()?;
 
 Ok((
-  path_params,
+  header_params,
 ))
 }
-/// GetRecommendedWordsForUser - GET /api/similar/{userId}/recommend
+/// MeGet - GET /api/me
 #[tracing::instrument(skip_all)]
-async fn get_recommended_words_for_user<I, A, E>(
+async fn me_get<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  Path(path_params): Path<models::GetRecommendedWordsForUserPathParams>,
+  headers: HeaderMap,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
     I: AsRef<A> + Send + Sync,
-    A: apis::similar::Similar<E> + Send + Sync,
+    A: apis::me::Me<E> + Send + Sync,
     E: std::fmt::Debug + Send + Sync + 'static,
         {
+
+    // Header parameters
+    let header_params = {
+                let header_x_forwarded_user = headers.get(HeaderName::from_static("x-forwarded-user"));
+
+                let header_x_forwarded_user = match header_x_forwarded_user {
+                    Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
+                        Ok(result) =>
+                            Some(result.0),
+                        Err(err) => {
+                            return Response::builder()
+                                        .status(StatusCode::BAD_REQUEST)
+                                        .body(Body::from(format!("Invalid header X-Forwarded-User - {}", err))).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+
+                        },
+                    },
+                    None => {
+                        None
+                    }
+                };
+
+       models::MeGetHeaderParams {
+          x_forwarded_user: header_x_forwarded_user,
+       }
+  };
 
 
       #[allow(clippy::redundant_closure)]
       let validation = tokio::task::spawn_blocking(move ||
-    get_recommended_words_for_user_validation(
-        path_params,
+    me_get_validation(
+        header_params,
     )
   ).await.unwrap();
 
   let Ok((
-    path_params,
+    header_params,
   )) = validation else {
     return Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -102,18 +124,18 @@ where
             .map_err(|_| StatusCode::BAD_REQUEST);
   };
 
-  let result = api_impl.as_ref().get_recommended_words_for_user(
+  let result = api_impl.as_ref().me_get(
       &method,
       &host,
       &cookies,
-        &path_params,
+        &header_params,
   ).await;
 
   let mut response = Response::builder();
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::similar::GetRecommendedWordsForUserResponse::Status200_OK
+                                                apis::me::MeGetResponse::Status200_SuccessfulRetrieval
                                                     (body)
                                                 => {
                                                   let mut response = response.status(200);
@@ -131,91 +153,10 @@ where
                                                       })).await.unwrap()?;
                                                   response.body(Body::from(body_content))
                                                 },
-                                            },
-                                            Err(why) => {
-                                                // Application code returned an error. This should not happen, as the implementation should
-                                                // return a valid response.
-                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
-                                            },
-                                        };
-
-                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
-}
-
-
-#[tracing::instrument(skip_all)]
-fn get_users_with_similar_words_validation(
-  path_params: models::GetUsersWithSimilarWordsPathParams,
-) -> std::result::Result<(
-  models::GetUsersWithSimilarWordsPathParams,
-), ValidationErrors>
-{
-  path_params.validate()?;
-
-Ok((
-  path_params,
-))
-}
-/// GetUsersWithSimilarWords - GET /api/similar/{userId}
-#[tracing::instrument(skip_all)]
-async fn get_users_with_similar_words<I, A, E>(
-  method: Method,
-  host: Host,
-  cookies: CookieJar,
-  Path(path_params): Path<models::GetUsersWithSimilarWordsPathParams>,
- State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::similar::Similar<E> + Send + Sync,
-    E: std::fmt::Debug + Send + Sync + 'static,
-        {
-
-
-      #[allow(clippy::redundant_closure)]
-      let validation = tokio::task::spawn_blocking(move ||
-    get_users_with_similar_words_validation(
-        path_params,
-    )
-  ).await.unwrap();
-
-  let Ok((
-    path_params,
-  )) = validation else {
-    return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-  };
-
-  let result = api_impl.as_ref().get_users_with_similar_words(
-      &method,
-      &host,
-      &cookies,
-        &path_params,
-  ).await;
-
-  let mut response = Response::builder();
-
-  let resp = match result {
-                                            Ok(rsp) => match rsp {
-                                                apis::similar::GetUsersWithSimilarWordsResponse::Status200_OK
-                                                    (body)
+                                                apis::me::MeGetResponse::Status404_NotFound
                                                 => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
+                                                  let mut response = response.status(404);
+                                                  response.body(Body::empty())
                                                 },
                                             },
                                             Err(why) => {
@@ -231,15 +172,15 @@ where
 
 #[tracing::instrument(skip_all)]
 fn stamps_get_validation(
-  query_params: models::StampsGetQueryParams,
+  header_params: models::StampsGetHeaderParams,
 ) -> std::result::Result<(
-  models::StampsGetQueryParams,
+  models::StampsGetHeaderParams,
 ), ValidationErrors>
 {
-  query_params.validate()?;
+  header_params.validate()?;
 
 Ok((
-  query_params,
+  header_params,
 ))
 }
 /// StampsGet - GET /api/stamps
@@ -248,7 +189,7 @@ async fn stamps_get<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  QueryExtra(query_params): QueryExtra<models::StampsGetQueryParams>,
+  headers: HeaderMap,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
@@ -257,16 +198,41 @@ where
     E: std::fmt::Debug + Send + Sync + 'static,
         {
 
+    // Header parameters
+    let header_params = {
+                let header_x_forwarded_user = headers.get(HeaderName::from_static("x-forwarded-user"));
+
+                let header_x_forwarded_user = match header_x_forwarded_user {
+                    Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
+                        Ok(result) =>
+                            Some(result.0),
+                        Err(err) => {
+                            return Response::builder()
+                                        .status(StatusCode::BAD_REQUEST)
+                                        .body(Body::from(format!("Invalid header X-Forwarded-User - {}", err))).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+
+                        },
+                    },
+                    None => {
+                        None
+                    }
+                };
+
+       models::StampsGetHeaderParams {
+          x_forwarded_user: header_x_forwarded_user,
+       }
+  };
+
 
       #[allow(clippy::redundant_closure)]
       let validation = tokio::task::spawn_blocking(move ||
     stamps_get_validation(
-        query_params,
+        header_params,
     )
   ).await.unwrap();
 
   let Ok((
-    query_params,
+    header_params,
   )) = validation else {
     return Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -278,7 +244,7 @@ where
       &method,
       &host,
       &cookies,
-        &query_params,
+        &header_params,
   ).await;
 
   let mut response = Response::builder();
@@ -363,7 +329,7 @@ where
                 let header_x_forwarded_user = match header_x_forwarded_user {
                     Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
                         Ok(result) =>
-                            result.0,
+                            Some(result.0),
                         Err(err) => {
                             return Response::builder()
                                         .status(StatusCode::BAD_REQUEST)
@@ -372,9 +338,7 @@ where
                         },
                     },
                     None => {
-                        return Response::builder()
-                                        .status(StatusCode::BAD_REQUEST)
-                                        .body(Body::from("Missing required header X-Forwarded-User")).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+                        None
                     }
                 };
 
@@ -414,9 +378,9 @@ where
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::stamps::StampsPostResponse::Status200_SuccessfulRegistration
+                                                apis::stamps::StampsPostResponse::Status201_SuccessfulRegistration
                                                 => {
-                                                  let mut response = response.status(200);
+                                                  let mut response = response.status(201);
                                                   response.body(Body::empty())
                                                 },
                                                 apis::stamps::StampsPostResponse::Status400_InvalidInput
@@ -437,136 +401,75 @@ where
 
 
 #[tracing::instrument(skip_all)]
-fn get_today_trending_words_validation(
-  query_params: models::GetTodayTrendingWordsQueryParams,
+fn stamps_stamp_id_delete_validation(
+  header_params: models::StampsStampIdDeleteHeaderParams,
+  path_params: models::StampsStampIdDeletePathParams,
 ) -> std::result::Result<(
-  models::GetTodayTrendingWordsQueryParams,
+  models::StampsStampIdDeleteHeaderParams,
+  models::StampsStampIdDeletePathParams,
 ), ValidationErrors>
 {
-  query_params.validate()?;
-
-Ok((
-  query_params,
-))
-}
-/// GetTodayTrendingWords - GET /api/trend/day/today
-#[tracing::instrument(skip_all)]
-async fn get_today_trending_words<I, A, E>(
-  method: Method,
-  host: Host,
-  cookies: CookieJar,
-  QueryExtra(query_params): QueryExtra<models::GetTodayTrendingWordsQueryParams>,
- State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::trend::Trend<E> + Send + Sync,
-    E: std::fmt::Debug + Send + Sync + 'static,
-        {
-
-
-      #[allow(clippy::redundant_closure)]
-      let validation = tokio::task::spawn_blocking(move ||
-    get_today_trending_words_validation(
-        query_params,
-    )
-  ).await.unwrap();
-
-  let Ok((
-    query_params,
-  )) = validation else {
-    return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-  };
-
-  let result = api_impl.as_ref().get_today_trending_words(
-      &method,
-      &host,
-      &cookies,
-        &query_params,
-  ).await;
-
-  let mut response = Response::builder();
-
-  let resp = match result {
-                                            Ok(rsp) => match rsp {
-                                                apis::trend::GetTodayTrendingWordsResponse::Status200_OK
-                                                    (body)
-                                                => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
-                                                },
-                                            },
-                                            Err(why) => {
-                                                // Application code returned an error. This should not happen, as the implementation should
-                                                // return a valid response.
-                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
-                                            },
-                                        };
-
-                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
-}
-
-
-#[tracing::instrument(skip_all)]
-fn get_trending_words_for_day_validation(
-  path_params: models::GetTrendingWordsForDayPathParams,
-  query_params: models::GetTrendingWordsForDayQueryParams,
-) -> std::result::Result<(
-  models::GetTrendingWordsForDayPathParams,
-  models::GetTrendingWordsForDayQueryParams,
-), ValidationErrors>
-{
+  header_params.validate()?;
   path_params.validate()?;
-  query_params.validate()?;
 
 Ok((
+  header_params,
   path_params,
-  query_params,
 ))
 }
-/// GetTrendingWordsForDay - GET /api/trend/day/{day}
+/// StampsStampIdDelete - DELETE /api/stamps/{stampId}
 #[tracing::instrument(skip_all)]
-async fn get_trending_words_for_day<I, A, E>(
+async fn stamps_stamp_id_delete<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
-  Path(path_params): Path<models::GetTrendingWordsForDayPathParams>,
-  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForDayQueryParams>,
+  headers: HeaderMap,
+  Path(path_params): Path<models::StampsStampIdDeletePathParams>,
  State(api_impl): State<I>,
 ) -> Result<Response, StatusCode>
 where
     I: AsRef<A> + Send + Sync,
-    A: apis::trend::Trend<E> + Send + Sync,
+    A: apis::stamps::Stamps<E> + Send + Sync,
     E: std::fmt::Debug + Send + Sync + 'static,
         {
+
+    // Header parameters
+    let header_params = {
+                let header_x_forwarded_user = headers.get(HeaderName::from_static("x-forwarded-user"));
+
+                let header_x_forwarded_user = match header_x_forwarded_user {
+                    Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
+                        Ok(result) =>
+                            Some(result.0),
+                        Err(err) => {
+                            return Response::builder()
+                                        .status(StatusCode::BAD_REQUEST)
+                                        .body(Body::from(format!("Invalid header X-Forwarded-User - {}", err))).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+
+                        },
+                    },
+                    None => {
+                        None
+                    }
+                };
+
+       models::StampsStampIdDeleteHeaderParams {
+          x_forwarded_user: header_x_forwarded_user,
+       }
+  };
 
 
       #[allow(clippy::redundant_closure)]
       let validation = tokio::task::spawn_blocking(move ||
-    get_trending_words_for_day_validation(
+    stamps_stamp_id_delete_validation(
+        header_params,
         path_params,
-        query_params,
     )
   ).await.unwrap();
 
   let Ok((
+    header_params,
     path_params,
-    query_params,
   )) = validation else {
     return Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -574,311 +477,24 @@ where
             .map_err(|_| StatusCode::BAD_REQUEST);
   };
 
-  let result = api_impl.as_ref().get_trending_words_for_day(
+  let result = api_impl.as_ref().stamps_stamp_id_delete(
       &method,
       &host,
       &cookies,
+        &header_params,
         &path_params,
-        &query_params,
   ).await;
 
   let mut response = Response::builder();
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::trend::GetTrendingWordsForDayResponse::Status200_OK
-                                                    (body)
+                                                apis::stamps::StampsStampIdDeleteResponse::Status204_SuccessfulDeletion
                                                 => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
+                                                  let mut response = response.status(204);
+                                                  response.body(Body::empty())
                                                 },
-                                            },
-                                            Err(why) => {
-                                                // Application code returned an error. This should not happen, as the implementation should
-                                                // return a valid response.
-                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
-                                            },
-                                        };
-
-                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
-}
-
-
-#[tracing::instrument(skip_all)]
-fn get_trending_words_for_month_validation(
-  path_params: models::GetTrendingWordsForMonthPathParams,
-  query_params: models::GetTrendingWordsForMonthQueryParams,
-) -> std::result::Result<(
-  models::GetTrendingWordsForMonthPathParams,
-  models::GetTrendingWordsForMonthQueryParams,
-), ValidationErrors>
-{
-  path_params.validate()?;
-  query_params.validate()?;
-
-Ok((
-  path_params,
-  query_params,
-))
-}
-/// GetTrendingWordsForMonth - GET /api/trend/month/{month}
-#[tracing::instrument(skip_all)]
-async fn get_trending_words_for_month<I, A, E>(
-  method: Method,
-  host: Host,
-  cookies: CookieJar,
-  Path(path_params): Path<models::GetTrendingWordsForMonthPathParams>,
-  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForMonthQueryParams>,
- State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::trend::Trend<E> + Send + Sync,
-    E: std::fmt::Debug + Send + Sync + 'static,
-        {
-
-
-      #[allow(clippy::redundant_closure)]
-      let validation = tokio::task::spawn_blocking(move ||
-    get_trending_words_for_month_validation(
-        path_params,
-        query_params,
-    )
-  ).await.unwrap();
-
-  let Ok((
-    path_params,
-    query_params,
-  )) = validation else {
-    return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-  };
-
-  let result = api_impl.as_ref().get_trending_words_for_month(
-      &method,
-      &host,
-      &cookies,
-        &path_params,
-        &query_params,
-  ).await;
-
-  let mut response = Response::builder();
-
-  let resp = match result {
-                                            Ok(rsp) => match rsp {
-                                                apis::trend::GetTrendingWordsForMonthResponse::Status200_OK
-                                                    (body)
-                                                => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
-                                                },
-                                            },
-                                            Err(why) => {
-                                                // Application code returned an error. This should not happen, as the implementation should
-                                                // return a valid response.
-                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
-                                            },
-                                        };
-
-                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
-}
-
-
-#[tracing::instrument(skip_all)]
-fn get_trending_words_for_year_validation(
-  path_params: models::GetTrendingWordsForYearPathParams,
-  query_params: models::GetTrendingWordsForYearQueryParams,
-) -> std::result::Result<(
-  models::GetTrendingWordsForYearPathParams,
-  models::GetTrendingWordsForYearQueryParams,
-), ValidationErrors>
-{
-  path_params.validate()?;
-  query_params.validate()?;
-
-Ok((
-  path_params,
-  query_params,
-))
-}
-/// GetTrendingWordsForYear - GET /api/trend/year/{year}
-#[tracing::instrument(skip_all)]
-async fn get_trending_words_for_year<I, A, E>(
-  method: Method,
-  host: Host,
-  cookies: CookieJar,
-  Path(path_params): Path<models::GetTrendingWordsForYearPathParams>,
-  QueryExtra(query_params): QueryExtra<models::GetTrendingWordsForYearQueryParams>,
- State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::trend::Trend<E> + Send + Sync,
-    E: std::fmt::Debug + Send + Sync + 'static,
-        {
-
-
-      #[allow(clippy::redundant_closure)]
-      let validation = tokio::task::spawn_blocking(move ||
-    get_trending_words_for_year_validation(
-        path_params,
-        query_params,
-    )
-  ).await.unwrap();
-
-  let Ok((
-    path_params,
-    query_params,
-  )) = validation else {
-    return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-  };
-
-  let result = api_impl.as_ref().get_trending_words_for_year(
-      &method,
-      &host,
-      &cookies,
-        &path_params,
-        &query_params,
-  ).await;
-
-  let mut response = Response::builder();
-
-  let resp = match result {
-                                            Ok(rsp) => match rsp {
-                                                apis::trend::GetTrendingWordsForYearResponse::Status200_OK
-                                                    (body)
-                                                => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
-                                                },
-                                            },
-                                            Err(why) => {
-                                                // Application code returned an error. This should not happen, as the implementation should
-                                                // return a valid response.
-                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
-                                            },
-                                        };
-
-                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
-}
-
-
-#[tracing::instrument(skip_all)]
-fn words_get_validation(
-  query_params: models::WordsGetQueryParams,
-) -> std::result::Result<(
-  models::WordsGetQueryParams,
-), ValidationErrors>
-{
-  query_params.validate()?;
-
-Ok((
-  query_params,
-))
-}
-/// WordsGet - GET /api/words
-#[tracing::instrument(skip_all)]
-async fn words_get<I, A, E>(
-  method: Method,
-  host: Host,
-  cookies: CookieJar,
-  QueryExtra(query_params): QueryExtra<models::WordsGetQueryParams>,
- State(api_impl): State<I>,
-) -> Result<Response, StatusCode>
-where
-    I: AsRef<A> + Send + Sync,
-    A: apis::words::Words<E> + Send + Sync,
-    E: std::fmt::Debug + Send + Sync + 'static,
-        {
-
-
-      #[allow(clippy::redundant_closure)]
-      let validation = tokio::task::spawn_blocking(move ||
-    words_get_validation(
-        query_params,
-    )
-  ).await.unwrap();
-
-  let Ok((
-    query_params,
-  )) = validation else {
-    return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from(validation.unwrap_err().to_string()))
-            .map_err(|_| StatusCode::BAD_REQUEST);
-  };
-
-  let result = api_impl.as_ref().words_get(
-      &method,
-      &host,
-      &cookies,
-        &query_params,
-  ).await;
-
-  let mut response = Response::builder();
-
-  let resp = match result {
-                                            Ok(rsp) => match rsp {
-                                                apis::words::WordsGetResponse::Status200_SuccessfulRetrieval
-                                                    (body)
-                                                => {
-                                                  let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
-                                                },
-                                                apis::words::WordsGetResponse::Status404_NotFound
+                                                apis::stamps::StampsStampIdDeleteResponse::Status404_NotFound
                                                 => {
                                                   let mut response = response.status(404);
                                                   response.body(Body::empty())
@@ -894,32 +510,50 @@ where
                                         resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
 }
 
+    #[derive(validator::Validate)]
+    #[allow(dead_code)]
+    struct StampsStampIdExclusionsPutBodyValidator<'a> {
+            #[validate(nested)]
+          body: &'a models::ExcludedUsers,
+    }
+
 
 #[tracing::instrument(skip_all)]
-fn words_me_get_validation(
-  header_params: models::WordsMeGetHeaderParams,
+fn stamps_stamp_id_exclusions_put_validation(
+  header_params: models::StampsStampIdExclusionsPutHeaderParams,
+  path_params: models::StampsStampIdExclusionsPutPathParams,
+        body: models::ExcludedUsers,
 ) -> std::result::Result<(
-  models::WordsMeGetHeaderParams,
+  models::StampsStampIdExclusionsPutHeaderParams,
+  models::StampsStampIdExclusionsPutPathParams,
+        models::ExcludedUsers,
 ), ValidationErrors>
 {
   header_params.validate()?;
+  path_params.validate()?;
+              let b = StampsStampIdExclusionsPutBodyValidator { body: &body };
+              b.validate()?;
 
 Ok((
   header_params,
+  path_params,
+    body,
 ))
 }
-/// WordsMeGet - GET /api/words/me
+/// StampsStampIdExclusionsPut - PUT /api/stamps/{stampId}/exclusions
 #[tracing::instrument(skip_all)]
-async fn words_me_get<I, A, E>(
+async fn stamps_stamp_id_exclusions_put<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
   headers: HeaderMap,
+  Path(path_params): Path<models::StampsStampIdExclusionsPutPathParams>,
  State(api_impl): State<I>,
+          Json(body): Json<models::ExcludedUsers>,
 ) -> Result<Response, StatusCode>
 where
     I: AsRef<A> + Send + Sync,
-    A: apis::words::Words<E> + Send + Sync,
+    A: apis::stamps::Stamps<E> + Send + Sync,
     E: std::fmt::Debug + Send + Sync + 'static,
         {
 
@@ -930,7 +564,7 @@ where
                 let header_x_forwarded_user = match header_x_forwarded_user {
                     Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
                         Ok(result) =>
-                            result.0,
+                            Some(result.0),
                         Err(err) => {
                             return Response::builder()
                                         .status(StatusCode::BAD_REQUEST)
@@ -939,13 +573,11 @@ where
                         },
                     },
                     None => {
-                        return Response::builder()
-                                        .status(StatusCode::BAD_REQUEST)
-                                        .body(Body::from("Missing required header X-Forwarded-User")).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+                        None
                     }
                 };
 
-       models::WordsMeGetHeaderParams {
+       models::StampsStampIdExclusionsPutHeaderParams {
           x_forwarded_user: header_x_forwarded_user,
        }
   };
@@ -953,13 +585,17 @@ where
 
       #[allow(clippy::redundant_closure)]
       let validation = tokio::task::spawn_blocking(move ||
-    words_me_get_validation(
+    stamps_stamp_id_exclusions_put_validation(
         header_params,
+        path_params,
+          body,
     )
   ).await.unwrap();
 
   let Ok((
     header_params,
+    path_params,
+      body,
   )) = validation else {
     return Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -967,38 +603,27 @@ where
             .map_err(|_| StatusCode::BAD_REQUEST);
   };
 
-  let result = api_impl.as_ref().words_me_get(
+  let result = api_impl.as_ref().stamps_stamp_id_exclusions_put(
       &method,
       &host,
       &cookies,
         &header_params,
+        &path_params,
+              &body,
   ).await;
 
   let mut response = Response::builder();
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::words::WordsMeGetResponse::Status200_SuccessfulRetrieval
-                                                    (body)
+                                                apis::stamps::StampsStampIdExclusionsPutResponse::Status200_SuccessfulEdit
                                                 => {
                                                   let mut response = response.status(200);
-                                                  {
-                                                    let mut response_headers = response.headers_mut().unwrap();
-                                                    response_headers.insert(
-                                                        CONTENT_TYPE,
-                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
-                                                  }
-
-                                                  let body_content =  tokio::task::spawn_blocking(move ||
-                                                      serde_json::to_vec(&body).map_err(|e| {
-                                                        error!(error = ?e);
-                                                        StatusCode::INTERNAL_SERVER_ERROR
-                                                      })).await.unwrap()?;
-                                                  response.body(Body::from(body_content))
+                                                  response.body(Body::empty())
                                                 },
-                                                apis::words::WordsMeGetResponse::Status400_InvalidInput
+                                                apis::stamps::StampsStampIdExclusionsPutResponse::Status404_NotFound
                                                 => {
-                                                  let mut response = response.status(400);
+                                                  let mut response = response.status(404);
                                                   response.body(Body::empty())
                                                 },
                                             },
@@ -1061,7 +686,7 @@ where
                 let header_x_forwarded_user = match header_x_forwarded_user {
                     Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
                         Ok(result) =>
-                            result.0,
+                            Some(result.0),
                         Err(err) => {
                             return Response::builder()
                                         .status(StatusCode::BAD_REQUEST)
@@ -1070,9 +695,7 @@ where
                         },
                     },
                     None => {
-                        return Response::builder()
-                                        .status(StatusCode::BAD_REQUEST)
-                                        .body(Body::from("Missing required header X-Forwarded-User")).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+                        None
                     }
                 };
 
@@ -1112,9 +735,9 @@ where
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::words::WordsPostResponse::Status200_SuccessfulRegistration
+                                                apis::words::WordsPostResponse::Status201_SuccessfulRegistration
                                                 => {
-                                                  let mut response = response.status(200);
+                                                  let mut response = response.status(201);
                                                   response.body(Body::empty())
                                                 },
                                                 apis::words::WordsPostResponse::Status400_InvalidInput
@@ -1174,7 +797,7 @@ where
                 let header_x_forwarded_user = match header_x_forwarded_user {
                     Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
                         Ok(result) =>
-                            result.0,
+                            Some(result.0),
                         Err(err) => {
                             return Response::builder()
                                         .status(StatusCode::BAD_REQUEST)
@@ -1183,9 +806,7 @@ where
                         },
                     },
                     None => {
-                        return Response::builder()
-                                        .status(StatusCode::BAD_REQUEST)
-                                        .body(Body::from("Missing required header X-Forwarded-User")).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+                        None
                     }
                 };
 
@@ -1225,9 +846,9 @@ where
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::words::WordsWordIdDeleteResponse::Status200_SuccessfulDeletion
+                                                apis::words::WordsWordIdDeleteResponse::Status204_SuccessfulDeletion
                                                 => {
-                                                  let mut response = response.status(200);
+                                                  let mut response = response.status(204);
                                                   response.body(Body::empty())
                                                 },
                                                 apis::words::WordsWordIdDeleteResponse::Status404_NotFound
@@ -1248,26 +869,26 @@ where
 
     #[derive(validator::Validate)]
     #[allow(dead_code)]
-    struct WordsWordIdPutBodyValidator<'a> {
+    struct WordsWordIdExclusionsPutBodyValidator<'a> {
             #[validate(nested)]
           body: &'a models::ExcludedUsers,
     }
 
 
 #[tracing::instrument(skip_all)]
-fn words_word_id_put_validation(
-  header_params: models::WordsWordIdPutHeaderParams,
-  path_params: models::WordsWordIdPutPathParams,
+fn words_word_id_exclusions_put_validation(
+  header_params: models::WordsWordIdExclusionsPutHeaderParams,
+  path_params: models::WordsWordIdExclusionsPutPathParams,
         body: models::ExcludedUsers,
 ) -> std::result::Result<(
-  models::WordsWordIdPutHeaderParams,
-  models::WordsWordIdPutPathParams,
+  models::WordsWordIdExclusionsPutHeaderParams,
+  models::WordsWordIdExclusionsPutPathParams,
         models::ExcludedUsers,
 ), ValidationErrors>
 {
   header_params.validate()?;
   path_params.validate()?;
-              let b = WordsWordIdPutBodyValidator { body: &body };
+              let b = WordsWordIdExclusionsPutBodyValidator { body: &body };
               b.validate()?;
 
 Ok((
@@ -1276,14 +897,14 @@ Ok((
     body,
 ))
 }
-/// WordsWordIdPut - PUT /api/words/{wordId}
+/// WordsWordIdExclusionsPut - PUT /api/words/{wordId}/exclusions
 #[tracing::instrument(skip_all)]
-async fn words_word_id_put<I, A, E>(
+async fn words_word_id_exclusions_put<I, A, E>(
   method: Method,
   host: Host,
   cookies: CookieJar,
   headers: HeaderMap,
-  Path(path_params): Path<models::WordsWordIdPutPathParams>,
+  Path(path_params): Path<models::WordsWordIdExclusionsPutPathParams>,
  State(api_impl): State<I>,
           Json(body): Json<models::ExcludedUsers>,
 ) -> Result<Response, StatusCode>
@@ -1300,7 +921,7 @@ where
                 let header_x_forwarded_user = match header_x_forwarded_user {
                     Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
                         Ok(result) =>
-                            result.0,
+                            Some(result.0),
                         Err(err) => {
                             return Response::builder()
                                         .status(StatusCode::BAD_REQUEST)
@@ -1309,13 +930,11 @@ where
                         },
                     },
                     None => {
-                        return Response::builder()
-                                        .status(StatusCode::BAD_REQUEST)
-                                        .body(Body::from("Missing required header X-Forwarded-User")).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+                        None
                     }
                 };
 
-       models::WordsWordIdPutHeaderParams {
+       models::WordsWordIdExclusionsPutHeaderParams {
           x_forwarded_user: header_x_forwarded_user,
        }
   };
@@ -1323,7 +942,7 @@ where
 
       #[allow(clippy::redundant_closure)]
       let validation = tokio::task::spawn_blocking(move ||
-    words_word_id_put_validation(
+    words_word_id_exclusions_put_validation(
         header_params,
         path_params,
           body,
@@ -1341,7 +960,7 @@ where
             .map_err(|_| StatusCode::BAD_REQUEST);
   };
 
-  let result = api_impl.as_ref().words_word_id_put(
+  let result = api_impl.as_ref().words_word_id_exclusions_put(
       &method,
       &host,
       &cookies,
@@ -1354,12 +973,244 @@ where
 
   let resp = match result {
                                             Ok(rsp) => match rsp {
-                                                apis::words::WordsWordIdPutResponse::Status200_SuccessfulEdit
+                                                apis::words::WordsWordIdExclusionsPutResponse::Status200_SuccessfulEdit
                                                 => {
                                                   let mut response = response.status(200);
                                                   response.body(Body::empty())
                                                 },
-                                                apis::words::WordsWordIdPutResponse::Status404_NotFound
+                                                apis::words::WordsWordIdExclusionsPutResponse::Status404_NotFound
+                                                => {
+                                                  let mut response = response.status(404);
+                                                  response.body(Body::empty())
+                                                },
+                                            },
+                                            Err(why) => {
+                                                // Application code returned an error. This should not happen, as the implementation should
+                                                // return a valid response.
+                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
+                                            },
+                                        };
+
+                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
+}
+
+
+#[tracing::instrument(skip_all)]
+fn me_stamps_get_validation(
+  header_params: models::MeStampsGetHeaderParams,
+) -> std::result::Result<(
+  models::MeStampsGetHeaderParams,
+), ValidationErrors>
+{
+  header_params.validate()?;
+
+Ok((
+  header_params,
+))
+}
+/// MeStampsGet - GET /api/me/stamps
+#[tracing::instrument(skip_all)]
+async fn me_stamps_get<I, A, E>(
+  method: Method,
+  host: Host,
+  cookies: CookieJar,
+  headers: HeaderMap,
+ State(api_impl): State<I>,
+) -> Result<Response, StatusCode>
+where
+    I: AsRef<A> + Send + Sync,
+    A: apis::me_stamps::MeStamps<E> + Send + Sync,
+    E: std::fmt::Debug + Send + Sync + 'static,
+        {
+
+    // Header parameters
+    let header_params = {
+                let header_x_forwarded_user = headers.get(HeaderName::from_static("x-forwarded-user"));
+
+                let header_x_forwarded_user = match header_x_forwarded_user {
+                    Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
+                        Ok(result) =>
+                            Some(result.0),
+                        Err(err) => {
+                            return Response::builder()
+                                        .status(StatusCode::BAD_REQUEST)
+                                        .body(Body::from(format!("Invalid header X-Forwarded-User - {}", err))).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+
+                        },
+                    },
+                    None => {
+                        None
+                    }
+                };
+
+       models::MeStampsGetHeaderParams {
+          x_forwarded_user: header_x_forwarded_user,
+       }
+  };
+
+
+      #[allow(clippy::redundant_closure)]
+      let validation = tokio::task::spawn_blocking(move ||
+    me_stamps_get_validation(
+        header_params,
+    )
+  ).await.unwrap();
+
+  let Ok((
+    header_params,
+  )) = validation else {
+    return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from(validation.unwrap_err().to_string()))
+            .map_err(|_| StatusCode::BAD_REQUEST);
+  };
+
+  let result = api_impl.as_ref().me_stamps_get(
+      &method,
+      &host,
+      &cookies,
+        &header_params,
+  ).await;
+
+  let mut response = Response::builder();
+
+  let resp = match result {
+                                            Ok(rsp) => match rsp {
+                                                apis::me_stamps::MeStampsGetResponse::Status200_SuccessfulRetrieval
+                                                    (body)
+                                                => {
+                                                  let mut response = response.status(200);
+                                                  {
+                                                    let mut response_headers = response.headers_mut().unwrap();
+                                                    response_headers.insert(
+                                                        CONTENT_TYPE,
+                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
+                                                  }
+
+                                                  let body_content =  tokio::task::spawn_blocking(move ||
+                                                      serde_json::to_vec(&body).map_err(|e| {
+                                                        error!(error = ?e);
+                                                        StatusCode::INTERNAL_SERVER_ERROR
+                                                      })).await.unwrap()?;
+                                                  response.body(Body::from(body_content))
+                                                },
+                                                apis::me_stamps::MeStampsGetResponse::Status404_NotFound
+                                                => {
+                                                  let mut response = response.status(404);
+                                                  response.body(Body::empty())
+                                                },
+                                            },
+                                            Err(why) => {
+                                                // Application code returned an error. This should not happen, as the implementation should
+                                                // return a valid response.
+                                                return api_impl.as_ref().handle_error(&method, &host, &cookies, why).await;
+                                            },
+                                        };
+
+                                        resp.map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })
+}
+
+
+#[tracing::instrument(skip_all)]
+fn me_words_get_validation(
+  header_params: models::MeWordsGetHeaderParams,
+) -> std::result::Result<(
+  models::MeWordsGetHeaderParams,
+), ValidationErrors>
+{
+  header_params.validate()?;
+
+Ok((
+  header_params,
+))
+}
+/// MeWordsGet - GET /api/me/words
+#[tracing::instrument(skip_all)]
+async fn me_words_get<I, A, E>(
+  method: Method,
+  host: Host,
+  cookies: CookieJar,
+  headers: HeaderMap,
+ State(api_impl): State<I>,
+) -> Result<Response, StatusCode>
+where
+    I: AsRef<A> + Send + Sync,
+    A: apis::me_words::MeWords<E> + Send + Sync,
+    E: std::fmt::Debug + Send + Sync + 'static,
+        {
+
+    // Header parameters
+    let header_params = {
+                let header_x_forwarded_user = headers.get(HeaderName::from_static("x-forwarded-user"));
+
+                let header_x_forwarded_user = match header_x_forwarded_user {
+                    Some(v) => match header::IntoHeaderValue::<String>::try_from((*v).clone()) {
+                        Ok(result) =>
+                            Some(result.0),
+                        Err(err) => {
+                            return Response::builder()
+                                        .status(StatusCode::BAD_REQUEST)
+                                        .body(Body::from(format!("Invalid header X-Forwarded-User - {}", err))).map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR });
+
+                        },
+                    },
+                    None => {
+                        None
+                    }
+                };
+
+       models::MeWordsGetHeaderParams {
+          x_forwarded_user: header_x_forwarded_user,
+       }
+  };
+
+
+      #[allow(clippy::redundant_closure)]
+      let validation = tokio::task::spawn_blocking(move ||
+    me_words_get_validation(
+        header_params,
+    )
+  ).await.unwrap();
+
+  let Ok((
+    header_params,
+  )) = validation else {
+    return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from(validation.unwrap_err().to_string()))
+            .map_err(|_| StatusCode::BAD_REQUEST);
+  };
+
+  let result = api_impl.as_ref().me_words_get(
+      &method,
+      &host,
+      &cookies,
+        &header_params,
+  ).await;
+
+  let mut response = Response::builder();
+
+  let resp = match result {
+                                            Ok(rsp) => match rsp {
+                                                apis::me_words::MeWordsGetResponse::Status200_SuccessfulRetrieval
+                                                    (body)
+                                                => {
+                                                  let mut response = response.status(200);
+                                                  {
+                                                    let mut response_headers = response.headers_mut().unwrap();
+                                                    response_headers.insert(
+                                                        CONTENT_TYPE,
+                                                        HeaderValue::from_str("application/json").map_err(|e| { error!(error = ?e); StatusCode::INTERNAL_SERVER_ERROR })?);
+                                                  }
+
+                                                  let body_content =  tokio::task::spawn_blocking(move ||
+                                                      serde_json::to_vec(&body).map_err(|e| {
+                                                        error!(error = ?e);
+                                                        StatusCode::INTERNAL_SERVER_ERROR
+                                                      })).await.unwrap()?;
+                                                  response.body(Body::from(body_content))
+                                                },
+                                                apis::me_words::MeWordsGetResponse::Status404_NotFound
                                                 => {
                                                   let mut response = response.status(404);
                                                   response.body(Body::empty())

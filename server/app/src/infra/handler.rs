@@ -1,9 +1,10 @@
 use crate::infra::repo::Repository;
 
 mod error;
-mod similar;
+mod me;
+mod me_stamps;
+mod me_words;
 mod stamps;
-mod trend;
 mod words;
 
 #[derive(Clone)]
