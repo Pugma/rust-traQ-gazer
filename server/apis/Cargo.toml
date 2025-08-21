@@ -1,6 +1,6 @@
 [package]
 name = "openapi"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["OpenAPI Generator team and contributors"]
 description = "部内連絡ツール traQ において登録された単語の通知を行うサービス"
 edition = "2021"
