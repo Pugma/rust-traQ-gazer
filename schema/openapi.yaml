@@ -33,9 +33,9 @@ paths:
             schema:
               $ref: '#/components/schemas/NewWord'
       responses:
-        '200':
+        201:
           description: Successful registration
-        '400':
+        400:
           description: Invalid input
 
   /words/{wordId}:
@@ -48,9 +48,9 @@ paths:
       summary: 単語の削除
       description: 自分が登録した単語を削除できる。ない場合は404
       responses:
-        '200':
+        204:
           description: Successful deletion
-        '404':
+        404:
           description: Not found
 
   /words/{wordId}/exclusions:
@@ -83,7 +83,7 @@ paths:
       summary: スタンプの一覧
       description: traQ に登録されているスタンプの一覧を取得
       responses:
-        '200':
+        200:
           description: Successful retrieval
           content:
             application/json:
@@ -101,9 +101,9 @@ paths:
             schema:
               $ref: '#/components/schemas/NewStamp'
       responses:
-        '200':
+        201:
           description: Successful registration
-        '400':
+        400:
           description: Invalid input
 
   /stamps/{stampId}:
@@ -116,9 +116,9 @@ paths:
       summary: スタンプの削除
       description: 自分が登録したスタンプを削除できる。ない場合は404
       responses:
-        '200':
+        204:
           description: Successful deletion
-        '404':
+        404:
           description: Not found
 
   /stamps/{stampId}/exclusions:
@@ -137,9 +137,9 @@ paths:
             schema:
               $ref: '#/components/schemas/ExcludedUsers'
       responses:
-        '200':
+        200:
           description: Successful edit
-        '404':
+        404:
           description: Not found
 
   /me:
@@ -151,13 +151,13 @@ paths:
       summary: 自分の情報の閲覧
       description: 自分の traP ID を取得
       responses:
-        '200':
+        200:
           description: Successful retrieval
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MyInfo'
-        '404':
+        404:
           description: Not found
 
   /me/words:
@@ -170,13 +170,13 @@ paths:
       summary: 自分の登録した単語の一覧
       description: 自分が登録した単語の一覧を取得
       responses:
-        '200':
+        200:
           description: Successful retrieval
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MyWords'
-        '404':
+        404:
           description: Not found
 
   /me/stamps:
@@ -189,13 +189,13 @@ paths:
       summary: 自分の登録したスタンプの一覧
       description: 自分が登録したスタンプの一覧を取得
       responses:
-        '200':
+        200:
           description: Successful retrieval
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MyStamps'
-        '404':
+        404:
           description: Not found
 
 components:
