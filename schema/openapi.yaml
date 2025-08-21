@@ -328,7 +328,9 @@ components:
     NeoShowcase:
       in: header
       name: X-Forwarded-User
-      description: traP ID を取得するためのヘッダー
+      description: |
+        traP ID を取得するためのヘッダーで、proxy 中に付与される
+        そのため、バックエンドでは必ず存在するものとして扱って良いが、フロントエンドでは空にする
       schema:
         type: string
-      required: true
+      required: false
