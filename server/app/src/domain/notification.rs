@@ -1,4 +1,5 @@
 use crate::domain::{traq_message::TraqMessageUuid, traq_stamp::TraqStampName, word::WordValue};
+use anyhow::Result;
 use uuid::Uuid;
 
 pub struct WordNotification {
@@ -27,13 +28,7 @@ pub struct StampNotification {
     message_uuid: TraqMessageUuid,
 }
 
-use async_trait::async_trait;
-
-#[async_trait]
 pub trait NotificationService {
-    async fn send_word_notification(&self, notification: WordNotification) -> Result<(), String>;
-    async fn send_stamp_notification(
-        &self,
-        notification: StampNotification,
-    ) -> Result<(), String>;
+    async fn send_word_notification(&self, notification: WordNotification) -> Result<()>;
+    async fn send_stamp_notification(&self, notification: StampNotification) -> Result<()>;
 }
