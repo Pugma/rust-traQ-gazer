@@ -4,7 +4,7 @@ info:
   title: traQ gazer
   description: |-
     部内連絡ツール traQ において登録された単語の通知を行うサービス
-  version: 1.0.0
+  version: 2.0.0
 
 servers:
   - url: /api
@@ -14,51 +14,18 @@ tags:
     description: 単語の閲覧・追加・削除
   - name: stamps
     description: スタンプの閲覧・追加・削除
-  - name: trend
-    description: トレンドのためのAPI集
-  - name: similar
-    description: おすすめのためのAPI集
+  - name: me
+    description: 自分の情報
 
 paths:
   /words:
-    get:
-      tags:
-        - words
-      summary: 全ユーザーの登録単語の閲覧
-      description: |
-        自分に限らず全ユーザーの登録している単語を見ることができる
-        クエリパラメータで特定の単語の登録者や特定ユーザーの登録単語を見ることも可能
-      parameters:
-        - name: word
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
-        - name: trapId
-          in: query
-          description: traP ID で指定する
-          required: false
-          schema:
-            type: string
-            example: "trap"
-      responses:
-        '200':
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Words'
-        '404':
-          description: Not found
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
     post:
       tags:
         - words
       summary: 単語の登録
       description: 同時に通知の設定もする
-      parameters:
-        - $ref: '#/components/parameters/NeoShowcase'
       requestBody:
         required: true
         content:
@@ -66,26 +33,35 @@ paths:
             schema:
               $ref: '#/components/schemas/NewWord'
       responses:
-        '200':
+        201:
           description: Successful registration
-        '400':
+        400:
           description: Invalid input
 
   /words/{wordId}:
     parameters:
-      - name: wordId
-        in: path
-        description: 単語の uuid で指定する
-        required: true
-        schema:
-          type: string
-          format: uuid
+      - $ref: '#/components/parameters/WordId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    delete:
+      tags:
+        - words
+      summary: 単語の削除
+      description: 自分が登録した単語を削除できる。ない場合は404
+      responses:
+        204:
+          description: Successful deletion
+        404:
+          description: Not found
+
+  /words/{wordId}/exclusions:
+    parameters:
+      - $ref: '#/components/parameters/WordId'
       - $ref: '#/components/parameters/NeoShowcase'
     put:
       tags:
         - words
-      summary: 通知除外者の設定
-      description: 通知しない投稿者を指定する
+      summary: 単語の通知除外者の設定
+      description: 指定した単語について、通知しない投稿者一覧を上書きして設定
       requestBody:
         required: true
         content:
@@ -97,60 +73,17 @@ paths:
           description: Successful edit
         '404':
           description: Not found
-    delete:
-      tags:
-        - words
-      summary: 単語の削除
-      description: 自分が登録した単語を削除できる。ない場合は404
-      responses:
-        '200':
-          description: Successful deletion
-        '404':
-          description: Not found
 
-  /words/me:
+  /stamps:
     parameters:
       - $ref: '#/components/parameters/NeoShowcase'
     get:
       tags:
-        - words
-      summary: 自分の登録単語の閲覧
-      description: 自分が登録している単語を、通知情報とともに閲覧する
-      responses:
-        '200':
-          description: Successful retrieval
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MyWords'
-        '400':
-          description: Invalid input
-
-  /stamps:
-    get:
-      tags:
         - stamps
-      summary: 全ユーザーの登録スタンプの閲覧
-      description: |
-        自分に限らず全ユーザーの登録しているスタンプを見ることができる
-        クエリパラメータで特定のスタンプの登録者や特定ユーザーの登録スタンプを見ることも可能
-      parameters:
-        - name: stampName
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
-        - name: trapId
-          in: query
-          required: false
-          schema:
-            type: string
-            example: "デジタル創作同好会traP"
-          style: form
+      summary: スタンプの一覧
+      description: traQ に登録されているスタンプの一覧を取得
       responses:
-        '200':
+        200:
           description: Successful retrieval
           content:
             application/json:
@@ -161,8 +94,6 @@ paths:
         - stamps
       summary: スタンプの登録
       description: 同時に通知の設定もする
-      parameters:
-        - $ref: '#/components/parameters/NeoShowcase'
       requestBody:
         required: true
         content:
@@ -170,170 +101,102 @@ paths:
             schema:
               $ref: '#/components/schemas/NewStamp'
       responses:
-        '200':
+        201:
           description: Successful registration
-        '400':
+        400:
           description: Invalid input
-  
-  /trend/day/today:
-    get:
-      tags:
-        - trend
-      summary: 今日のトレンド
-      description: 今日最も追加されたwordの取得
-      operationId: getTodayTrendingWords
-      parameters:
-        - name: limit
-          in: query
-          description: 返すwordの数
-          required: false
-          schema:
-            type: integer
-            default: 10
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrendingWords'
-  /trend/day/{day}:
+
+  /stamps/{stampId}:
     parameters:
-      - name: day
-        in: path
-        description: Specific day in the format "YYYY-MM-DD"
-        required: true
-        schema:
-          type: string
-          example: 
-            - "YYYY-MM-DD"
-          
-    get:
+      - $ref: '#/components/parameters/StampId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    delete:
       tags:
-        - trend
-      summary: ある日のトレンド
-      description: 特定の日に最も追加されたwordの取得
-      operationId: getTrendingWordsForDay
-      parameters:
-        - name: limit
-          in: query
-          description: 返すwordの数
-          required: false
-          schema:
-            type: integer
-            default: 10
+        - stamps
+      summary: スタンプの削除
+      description: 自分が登録したスタンプを削除できる。ない場合は404
       responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrendingWords'
-  /trend/month/{month}:
+        204:
+          description: Successful deletion
+        404:
+          description: Not found
+
+  /stamps/{stampId}/exclusions:
     parameters:
-      - name: month
-        in: path
-        description: Specific month in the format "YYYY-MM"
-        required: true
-        schema:
-          type: string
-          example: 
-            - "YYYY-MM"
-          
-    get:
+      - $ref: '#/components/parameters/StampId'
+      - $ref: '#/components/parameters/NeoShowcase'
+    put:
       tags:
-        - trend
-      summary: ある月のトレンド
-      description: 特定の月に最も追加されたwordの取得
-      operationId: getTrendingWordsForMonth
-      parameters:
-        - name: limit
-          in: query
-          description: 返すwordの数
-          required: false
-          schema:
-            type: integer
-            default: 10
+        - stamps
+      summary: スタンプの通知除外者の設定
+      description: 指定したスタンプについて、通知しない投稿者一覧を上書きして設定
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExcludedUsers'
       responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TrendingWords'
-  /trend/year/{year}:
+        200:
+          description: Successful edit
+        404:
+          description: Not found
+
+  /me:
     parameters:
-      - name: year
-        in: path
-        description: Specific year in the format "YYYY"
-        required: true
-        schema:
-          type: string
-          example: 
-            - "YYYY"
+      - $ref: '#/components/parameters/NeoShowcase'
     get:
       tags:
-        - trend
-      summary: ある年のトレンド
-      description: 特定の年に最も追加されたwordの取得
-      operationId: getTrendingWordsForYear
-      parameters:
-        - name: limit
-          in: query
-          description: 返すwordの数
-          required: false
-          schema:
-            type: integer
-            default: 10
+        - me
+      summary: 自分の情報の閲覧
+      description: 自分の traP ID を取得
       responses:
-        '200':
-          description: OK
+        200:
+          description: Successful retrieval
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TrendingWords'
-  /similar/{userId}:
+                $ref: '#/components/schemas/MyInfo'
+        404:
+          description: Not found
+
+  /me/words:
     parameters:
-      - name: userId
-        in: path
-        description: ID of the user
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/NeoShowcase'
     get:
       tags:
-        - similar
-      summary: 似たような者を探す
-      description: 特定のuserと同じような単語を登録しているuserの取得
-      operationId: getUsersWithSimilarWords
+        - me
+        - words
+      summary: 自分の登録した単語の一覧
+      description: 自分が登録した単語の一覧を取得
       responses:
-        '200':
-          description: OK
+        200:
+          description: Successful retrieval
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SimilarUsers'
-  /similar/{userId}/recommend:
+                $ref: '#/components/schemas/MyWords'
+        404:
+          description: Not found
+
+  /me/stamps:
     parameters:
-      - name: userId
-        in: path
-        description: ID of the user
-        required: true
-        schema:
-          type: string
+      - $ref: '#/components/parameters/NeoShowcase'
     get:
       tags:
-        - similar
-      summary: おすすめの単語を出す
-      description: 特定のuserと同じような単語を登録しているuserが登録している単語の取得
-      operationId: getRecommendedWordsForUser
+        - me
+        - stamps
+      summary: 自分の登録したスタンプの一覧
+      description: 自分が登録したスタンプの一覧を取得
       responses:
-        '200':
-          description: OK
+        200:
+          description: Successful retrieval
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecommendedWords'
+                $ref: '#/components/schemas/MyStamps'
+        404:
+          description: Not found
 
 components:
   schemas:
@@ -341,12 +204,17 @@ components:
       type: object
       description: sessionからuserIdを取る
       properties:
-        word:
+        wordValue:
           type: string
+          example: "デジタル創作同好会traP"
+        isRegex:
+          type: boolean
+          example: false
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - word
+        - wordValue
+        - isRegex
         - excludedUsers
     ExcludedUsers:
       type: array
@@ -368,47 +236,32 @@ components:
     MyWord:
       type: object
       properties:
-        word:
-          type: string
         id:
           type: string
           format: uuid
-        time:
+        wordValue:
           type: string
-          format: date-time
+        isRegex:
+          type: boolean
+          example: false
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - word
         - id
-        - time
+        - wordValue
+        - isRegex
         - excludedUsers
-    
-    Words:
-      type: array
-      items:
-        $ref: '#/components/schemas/Word'
-    Word:
-      type: object
-      properties:
-        trapId:
-          type: string
-        word:
-          type: string
-      required:
-        - trapId
-        - word
     
     NewStamp:
       type: object
       description: sessionからuserIdを取る
       properties:
-        stamp:
+        stampName:
           type: string
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - stamp
+        - stampName
         - excludedUsers
     
     MyStamps:
@@ -418,58 +271,35 @@ components:
     MyStamp:
       type: object
       properties:
-        name:
-          type: string
         id:
           type: string
           format: uuid
-        time:
+        stampName:
           type: string
-          format: date-time
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - name
         - id
-        - time
+        - stampName
         - excludedUsers
     
     Stamps:
       type: array
       items:
-        $ref: '#/components/schemas/Word'
+        $ref: '#/components/schemas/Stamp'
     Stamp:
       type: object
       properties:
-        trapId:
+        stampName:
           type: string
-        name:
+        stampId:
           type: string
+          format: uuid
       required:
-        - trapId
-        - name
+        - stampName
+        - stampId
 
-    TrendingWords:
-      type: array
-      items:
-        $ref: '#/components/schemas/TrendingWord'
-    TrendingWord:
-      type: object
-      properties:
-        number:
-          type: integer
-          example: 1
-        word:
-          type: string
-          example: "example"
-      required:
-        - number
-        - word
-    SimilarUsers:
-      type: array
-      items:
-        $ref: '#/components/schemas/SimilarUser'
-    SimilarUser:
+    MyInfo:
       type: object
       properties:
         trapId:
@@ -477,27 +307,30 @@ components:
           example: "trap"
       required:
         - trapId
-    RecommendedWords:
-      type: array
-      items:
-        $ref: '#/components/schemas/RecommendedWord'
-    RecommendedWord:
-      type: object
-      properties:
-        number:
-          type: integer
-          example: 1
-        word:
-          type: string
-          example: "example"
-      required:
-        - number
-        - word
+
   parameters:
+    WordId:
+      in: path
+      name: wordId
+      description: 単語の uuid で指定する
+      schema:
+        type: string
+        format: uuid
+      required: true
+    StampId:
+      in: path
+      name: stampId
+      description: スタンプの uuid で指定する
+      schema:
+        type: string
+        format: uuid
+      required: true
     NeoShowcase:
       in: header
       name: X-Forwarded-User
-      description: traP ID を取得するためのヘッダー
+      description: |
+        traP ID を取得するためのヘッダーで、proxy 中に付与される
+        そのため、バックエンドでは必ず存在するものとして扱って良いが、フロントエンドでは空にする
       schema:
         type: string
-      required: true
+      required: false

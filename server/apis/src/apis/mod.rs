@@ -1,7 +1,8 @@
-pub mod similar;
+pub mod me;
 pub mod stamps;
-pub mod trend;
 pub mod words;
+pub mod me_stamps;
+pub mod me_words;
 
 
 // Error handler for unhandled errors.

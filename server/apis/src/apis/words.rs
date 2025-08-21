@@ -10,33 +10,9 @@ use crate::{models, types::*};
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[must_use]
 #[allow(clippy::large_enum_variant)]
-pub enum WordsGetResponse {
-    /// Successful retrieval
-    Status200_SuccessfulRetrieval
-    (models::Words)
-    ,
-    /// Not found
-    Status404_NotFound
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[must_use]
-#[allow(clippy::large_enum_variant)]
-pub enum WordsMeGetResponse {
-    /// Successful retrieval
-    Status200_SuccessfulRetrieval
-    (models::MyWords)
-    ,
-    /// Invalid input
-    Status400_InvalidInput
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-#[must_use]
-#[allow(clippy::large_enum_variant)]
 pub enum WordsPostResponse {
     /// Successful registration
-    Status200_SuccessfulRegistration
+    Status201_SuccessfulRegistration
     ,
     /// Invalid input
     Status400_InvalidInput
@@ -47,7 +23,7 @@ pub enum WordsPostResponse {
 #[allow(clippy::large_enum_variant)]
 pub enum WordsWordIdDeleteResponse {
     /// Successful deletion
-    Status200_SuccessfulDeletion
+    Status204_SuccessfulDeletion
     ,
     /// Not found
     Status404_NotFound
@@ -56,7 +32,7 @@ pub enum WordsWordIdDeleteResponse {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[must_use]
 #[allow(clippy::large_enum_variant)]
-pub enum WordsWordIdPutResponse {
+pub enum WordsWordIdExclusionsPutResponse {
     /// Successful edit
     Status200_SuccessfulEdit
     ,
@@ -69,28 +45,6 @@ pub enum WordsWordIdPutResponse {
 #[async_trait]
 #[allow(clippy::ptr_arg)]
 pub trait Words<E: std::fmt::Debug + Send + Sync + 'static = ()>: super::ErrorHandler<E> {
-    /// 全ユーザーの登録単語の閲覧.
-    ///
-    /// WordsGet - GET /api/words
-    async fn words_get(
-    &self,
-    method: &Method,
-    host: &Host,
-    cookies: &CookieJar,
-      query_params: &models::WordsGetQueryParams,
-    ) -> Result<WordsGetResponse, E>;
-
-    /// 自分の登録単語の閲覧.
-    ///
-    /// WordsMeGet - GET /api/words/me
-    async fn words_me_get(
-    &self,
-    method: &Method,
-    host: &Host,
-    cookies: &CookieJar,
-      header_params: &models::WordsMeGetHeaderParams,
-    ) -> Result<WordsMeGetResponse, E>;
-
     /// 単語の登録.
     ///
     /// WordsPost - POST /api/words
@@ -115,16 +69,16 @@ pub trait Words<E: std::fmt::Debug + Send + Sync + 'static = ()>: super::ErrorHa
       path_params: &models::WordsWordIdDeletePathParams,
     ) -> Result<WordsWordIdDeleteResponse, E>;
 
-    /// 通知除外者の設定.
+    /// 単語の通知除外者の設定.
     ///
-    /// WordsWordIdPut - PUT /api/words/{wordId}
-    async fn words_word_id_put(
+    /// WordsWordIdExclusionsPut - PUT /api/words/{wordId}/exclusions
+    async fn words_word_id_exclusions_put(
     &self,
     method: &Method,
     host: &Host,
     cookies: &CookieJar,
-      header_params: &models::WordsWordIdPutHeaderParams,
-      path_params: &models::WordsWordIdPutPathParams,
+      header_params: &models::WordsWordIdExclusionsPutHeaderParams,
+      path_params: &models::WordsWordIdExclusionsPutPathParams,
             body: &models::ExcludedUsers,
-    ) -> Result<WordsWordIdPutResponse, E>;
+    ) -> Result<WordsWordIdExclusionsPutResponse, E>;
 }
