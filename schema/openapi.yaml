@@ -19,13 +19,13 @@ tags:
 
 paths:
   /words:
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
     post:
       tags:
         - words
       summary: 単語の登録
       description: 同時に通知の設定もする
-      parameters:
-        - $ref: '#/components/parameters/NeoShowcase'
       requestBody:
         required: true
         content:
