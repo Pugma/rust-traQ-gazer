@@ -58,7 +58,7 @@ impl StampRepository for Repository {
                 traq_stamp_id: TraqStampId(row.stamp_id),
                 excluded_stamp_user_ids: row
                     .excluded_user_ids
-                    .unwrap()
+                    .unwrap_or("".to_string())
                     .split(',')
                     .filter_map(|id| id.parse().ok().map(UserId))
                     .collect(),
@@ -97,7 +97,7 @@ impl StampRepository for Repository {
                 traq_stamp_id: TraqStampId(row.stamp_id),
                 excluded_stamp_user_ids: row
                     .excluded_user_ids
-                    .unwrap()
+                    .unwrap_or("".to_string())
                     .split(',')
                     .filter_map(|id| id.parse().ok().map(UserId))
                     .collect(),
