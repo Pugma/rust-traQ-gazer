@@ -176,6 +176,44 @@ paths:
         '404':
           description: Not found
 
+  /me/words:
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
+    get:
+      tags:
+        - me
+        - words
+      summary: 自分の登録した単語の一覧
+      description: 自分が登録した単語の一覧を取得
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyWords'
+        '404':
+          description: Not found
+
+  /me/stamps:
+    parameters:
+      - $ref: '#/components/parameters/NeoShowcase'
+    get:
+      tags:
+        - me
+        - stamps
+      summary: 自分の登録したスタンプの一覧
+      description: 自分が登録したスタンプの一覧を取得
+      responses:
+        '200':
+          description: Successful retrieval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyStamps'
+        '404':
+          description: Not found
+
 components:
   schemas:
     NewWord:
@@ -214,20 +252,20 @@ components:
     MyWord:
       type: object
       properties:
-        word:
-          type: string
         id:
           type: string
           format: uuid
-        time:
+        wordValue:
           type: string
-          format: date-time
+        isRegex:
+          type: boolean
+          example: false
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - word
         - id
-        - time
+        - wordValue
+        - isRegex
         - excludedUsers
     
     NewStamp:
@@ -249,20 +287,16 @@ components:
     MyStamp:
       type: object
       properties:
-        name:
-          type: string
         id:
           type: string
           format: uuid
-        time:
+        stampName:
           type: string
-          format: date-time
         excludedUsers:
           $ref: '#/components/schemas/ExcludedUsers'
       required:
-        - name
         - id
-        - time
+        - stampName
         - excludedUsers
     
     Stamps:
