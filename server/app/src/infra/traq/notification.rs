@@ -40,7 +40,30 @@ impl NotificationService for TraqNotificationService {
         Ok(())
     }
 
-    async fn send_stamp_notification(&self, _notification: StampNotification) -> Result<()> {
-        unimplemented!()
+    async fn send_stamp_notification(&self, notification: StampNotification) -> Result<()> {
+        let message = format!(
+            "{}\n{}",
+            notification
+                .matched_stamp_names()
+                .iter()
+                .map(|s| s.0.as_str())
+                .collect::<Vec<_>>()
+                .join(" "),
+            format!(
+                "https://q.trap.jp/messages/{}",
+                notification.message_uuid().0
+            )
+        );
+        post_direct_message(
+            &self.config,
+            &notification.target_user_uuid().to_string(),
+            Some(PostMessageRequest {
+                content: message,
+                embed: Some(false),
+            }),
+        )
+        .await?;
+
+        Ok(())
     }
 }
