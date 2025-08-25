@@ -2,22 +2,39 @@ use chrono::{DateTime, SecondsFormat, Utc};
 use log::{debug, error, info};
 use traq::apis::message_api::search_messages;
 
+use std::sync::Arc;
+
 use crate::{
-    config::traq::TRAQ_CONFIG, domain::traq_message::TraqMessage,
+    config::traq::TRAQ_CONFIG,
+    domain::{
+        traq_message::{TraqMessage, TraqMessageStamp, TraqMessageUuid},
+        user::{UserId, UserRepository},
+    },
     usecase::message_poller::MessagePoller,
 };
 
 const MESSAGE_LIMIT: i32 = 100;
 
-pub struct TraqMessageCollector {}
+pub struct TraqMessageCollector<U>
+where
+    U: UserRepository,
+{
+    user_repo: Arc<U>,
+}
 
-impl TraqMessageCollector {
-    pub fn new() -> Self {
-        Self {}
+impl<U> TraqMessageCollector<U>
+where
+    U: UserRepository,
+{
+    pub fn new(user_repo: Arc<U>) -> Self {
+        Self { user_repo }
     }
 }
 
-impl MessagePoller for TraqMessageCollector {
+impl<U> MessagePoller for TraqMessageCollector<U>
+where
+    U: UserRepository + Send + Sync,
+{
     async fn collect_messages(
         &self,
         last_checkpoint: &mut DateTime<Utc>,
@@ -26,7 +43,7 @@ impl MessagePoller for TraqMessageCollector {
 
         let now = Utc::now();
 
-        let messages = vec![];
+        let mut messages = vec![];
 
         for page in 0.. {
             let result = search_messages(
@@ -64,6 +81,34 @@ impl MessagePoller for TraqMessageCollector {
 
             let hit_messages = result.hits;
             info!("Collected {} messages", hit_messages.len());
+
+            for message in hit_messages.iter() {
+                let user = match self.user_repo.find_by_traq_uuid(message.user_id).await {
+                    Ok(user) => user,
+                    Err(e) => {
+                        log::error!("Failed to find user by traq_uuid: {}", e);
+                        continue;
+                    }
+                };
+                let mut stamps = Vec::new();
+                for s in message.stamps.iter() {
+                    let user = match self.user_repo.find_by_traq_uuid(s.user_id).await {
+                        Ok(user) => user,
+                        Err(e) => {
+                            log::error!("Failed to find user by traq_uuid: {}", e);
+                            continue;
+                        }
+                    };
+                    stamps.push(TraqMessageStamp::new(s.stamp_id, user.id));
+                }
+                let traq_message = TraqMessage::new(
+                    TraqMessageUuid::new(message.id),
+                    user.id,
+                    message.content.clone(),
+                    stamps,
+                );
+                messages.push(traq_message);
+            }
 
             if MESSAGE_LIMIT * (page + 1) >= result.total_hits as i32 {
                 if hit_messages.is_empty() {

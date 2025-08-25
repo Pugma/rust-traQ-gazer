@@ -1,7 +1,7 @@
 use anyhow::Result;
 use uuid::Uuid;
 
-#[derive(sqlx::Type)]
+#[derive(sqlx::Type, PartialEq, Eq, Hash, Clone, Copy)]
 #[sqlx(transparent)]
 pub struct UserId(pub i64);
 

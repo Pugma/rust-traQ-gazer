@@ -1,7 +1,16 @@
 use crate::domain::{traq_stamp::TraqStampName, user::UserId, word::WordValue};
 use uuid::Uuid;
 
-pub struct TraqMessageUuid(Uuid);
+use anyhow::Result;
+
+#[derive(Clone)]
+pub struct TraqMessageUuid(pub Uuid);
+
+impl TraqMessageUuid {
+    pub fn new(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
 
 pub struct TraqMessage {
     uuid: TraqMessageUuid,
@@ -10,9 +19,46 @@ pub struct TraqMessage {
     stamps: Vec<TraqMessageStamp>,
 }
 
+impl TraqMessage {
+    pub fn new(
+        uuid: TraqMessageUuid,
+        author_user_id: UserId,
+        content: String,
+        stamps: Vec<TraqMessageStamp>,
+    ) -> Self {
+        Self {
+            uuid,
+            author_user_id,
+            content,
+            stamps,
+        }
+    }
+
+    pub fn uuid(&self) -> &TraqMessageUuid {
+        &self.uuid
+    }
+
+    pub fn author_user_id(&self) -> &UserId {
+        &self.author_user_id
+    }
+
+    pub fn content(&self) -> &String {
+        &self.content
+    }
+}
+
 pub struct TraqMessageStamp {
     stamp_uuid: Uuid,
     user_id: UserId,
+}
+
+impl TraqMessageStamp {
+    pub fn new(stamp_uuid: Uuid, user_id: UserId) -> Self {
+        Self {
+            stamp_uuid,
+            user_id,
+        }
+    }
 }
 
 pub trait TraqMessageService {
