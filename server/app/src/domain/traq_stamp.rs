@@ -18,7 +18,11 @@ pub struct TraqStamp {
 }
 
 pub trait TraqStampService {
-    async fn get_stamp_id_by_name(&self, name: &str) -> Result<TraqStampId>;
-    async fn sync_stamps_from_traq(&self) -> Result<()>;
-    async fn find_all(&self) -> Result<Vec<TraqStamp>>;
+    async fn sync_with_traq(&self) -> Result<()>;
+}
+
+pub trait TraqStampRepository {
+    async fn upsert_stamps(&self, stamps: Vec<TraqStamp>) -> Result<()>;
+    async fn get_all_stamps(&self) -> Result<Vec<TraqStamp>>;
+    async fn find_stamp_by_name(&self, name: &str) -> Result<Option<TraqStamp>>;
 }
