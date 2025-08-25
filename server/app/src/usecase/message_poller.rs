@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     domain::{
         notification::NotificationService, traq_message::TraqMessage, user::UserRepository,

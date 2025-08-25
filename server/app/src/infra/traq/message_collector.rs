@@ -8,7 +8,7 @@ use crate::{
     config::traq::TRAQ_CONFIG,
     domain::{
         traq_message::{TraqMessage, TraqMessageStamp, TraqMessageUuid},
-        user::{UserId, UserRepository},
+        user::UserRepository,
     },
     usecase::message_poller::MessagePoller,
 };
