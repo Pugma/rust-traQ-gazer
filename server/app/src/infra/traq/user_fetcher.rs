@@ -2,7 +2,7 @@ use anyhow::Result;
 use log::info;
 use traq::{
     apis::user_api,
-    models::{User, UserAccountState},
+    models::UserAccountState,
 };
 
 use crate::{
