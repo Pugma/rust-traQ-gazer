@@ -27,6 +27,29 @@ pub struct StampNotification {
     matched_stamp_names: Vec<TraqStampName>,
     message_uuid: TraqMessageUuid,
 }
+impl StampNotification {
+    pub fn new(
+        target_user_uuid: Uuid,
+        matched_stamp_names: Vec<TraqStampName>,
+        message_uuid: TraqMessageUuid,
+    ) -> Self {
+        Self {
+            target_user_uuid,
+            matched_stamp_names,
+            message_uuid,
+        }
+    }
+
+    pub fn target_user_uuid(&self) -> Uuid {
+        self.target_user_uuid
+    }
+    pub fn matched_stamp_names(&self) -> &[TraqStampName] {
+        &self.matched_stamp_names
+    }
+    pub fn message_uuid(&self) -> &TraqMessageUuid {
+        &self.message_uuid
+    }
+}
 
 pub trait NotificationService {
     async fn send_word_notification(&self, notification: WordNotification) -> Result<()>;
