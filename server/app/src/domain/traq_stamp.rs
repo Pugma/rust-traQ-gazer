@@ -23,6 +23,6 @@ pub trait TraqStampService {
 
 pub trait TraqStampRepository {
     async fn upsert_stamps(&self, stamps: Vec<TraqStamp>) -> Result<()>;
-    async fn get_all_stamps(&self) -> Result<Vec<TraqStamp>>;
     async fn find_stamp_by_name(&self, name: &str) -> Result<Option<TraqStamp>>;
+    async fn find_stamp_by_uuid(&self, uuid: &Uuid) -> Result<Option<TraqStamp>>;
 }
