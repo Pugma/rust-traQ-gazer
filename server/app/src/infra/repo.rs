@@ -5,6 +5,7 @@ use crate::config::repo::DB_CONFIG;
 
 mod polling;
 mod stamps;
+mod traq_stamp;
 mod user;
 mod word;
 
