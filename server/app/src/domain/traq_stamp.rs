@@ -17,6 +17,24 @@ pub struct TraqStamp {
     uuid: TraqStampUuid,
 }
 
+impl TraqStamp {
+    pub fn new(id: TraqStampId, name: TraqStampName, uuid: TraqStampUuid) -> Self {
+        Self { id, name, uuid }
+    }
+
+    pub fn id(&self) -> &TraqStampId {
+        &self.id
+    }
+
+    pub fn name(&self) -> &TraqStampName {
+        &self.name
+    }
+
+    pub fn uuid(&self) -> &TraqStampUuid {
+        &self.uuid
+    }
+}
+
 pub trait TraqStampService {
     async fn sync_with_traq(&self) -> Result<()>;
 }
