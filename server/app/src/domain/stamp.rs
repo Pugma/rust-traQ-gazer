@@ -55,3 +55,7 @@ pub trait StampRepository {
     async fn find_by_user_id(&self, user_id: &UserId) -> Result<Vec<Stamp>>;
     async fn delete(&self, stamp_id: &StampId) -> Result<()>;
 }
+pub trait StampExcludedUsersRepository {
+    async fn insert_excluded_users(&self, stamp_id: &StampId, user_ids: Vec<UserId>) -> Result<()>;
+    async fn delete_excluded_users(&self, stamp_id: &StampId, user_ids: Vec<UserId>) -> Result<()>;
+}
