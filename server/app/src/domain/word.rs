@@ -78,3 +78,7 @@ pub trait WordRepository {
     async fn find_words_by_user_id(&self, user_id: &UserId) -> Result<Vec<Word>>;
     async fn delete_word(&self, word_id: &WordId) -> Result<()>;
 }
+pub trait WordExcludedUsersRepository {
+    async fn insert_excluded_users(&self, word_id: &WordId, user_ids: Vec<UserId>) -> Result<()>;
+    async fn delete_excluded_users(&self, word_id: &WordId, user_ids: Vec<UserId>) -> Result<()>;
+}
