@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: cargo
-    directory: /server/app
+    directory: /server
     schedule:
       interval: monthly
   - package-ecosystem: docker
