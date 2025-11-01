@@ -9,7 +9,7 @@ sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "chrono
 tokio = {version = "1.44.0", features = ["rt"]}
 openapi = {path = "../apis"}
 axum = "0.8.1"
-axum-extra = "0.10.3"
+axum-extra = "0.12.0"
 uuid = {version = "1.10.0", features = ["v4"]}
 traq = {version = "0.1.5", features=["rustls-tls"]}
 env_logger = "0.11.5"
