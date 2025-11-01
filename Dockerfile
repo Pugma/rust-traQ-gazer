@@ -1,5 +1,5 @@
 # server のビルド
-FROM rust:1.90 AS builder
+FROM rust:1.91 AS builder
 
 WORKDIR /app/server
 
