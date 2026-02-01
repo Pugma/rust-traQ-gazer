@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.100"
 sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "chrono"]}
 tokio = {version = "1.44.0", features = ["rt"]}
 openapi = {path = "../apis"}
