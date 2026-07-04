@@ -4,19 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0.89"
-sqlx = {version = "0.8.2", features = ["mysql", "runtime-tokio", "uuid", "chrono"]}
-tokio = {version = "1.44.0", features = ["rt"]}
+anyhow = "1.0.103"
+sqlx = {version = "0.9.0", features = ["mysql", "runtime-tokio", "uuid", "chrono"]}
+tokio = {version = "1.52.3", features = ["rt"]}
 openapi = {path = "../apis"}
-axum = "0.8.1"
-axum-extra = "0.10.3"
-uuid = {version = "1.10.0", features = ["v4"]}
+axum = "0.8.9"
+axum-extra = "0.12.6"
+uuid = {version = "1.23.4", features = ["v4"]}
 traq = {version = "0.1.5", features=["rustls-tls"]}
-env_logger = "0.11.5"
-log = "0.4.28"
-chrono = "0.4.38"
+env_logger = "0.11.11"
+log = "0.4.33"
+chrono = "0.4.45"
 async-trait = "0.1.89"
 tokio-cron-scheduler = "0.15.1"
 chrono-tz = "0.10.4"
-futures = "0.3.30"
-regex = "1.12.2"
+futures = "0.3.32"
+regex = "1.12.4"

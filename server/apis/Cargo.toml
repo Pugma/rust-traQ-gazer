@@ -17,30 +17,30 @@ conversion = [
 ]
 
 [dependencies]
-async-trait = "0.1"
-axum = { version = "0.8", features = ["multipart"] }
-axum-extra = { version = "0.10", features = ["cookie", "query"] }
-base64 = "0.22"
-bytes = "1"
-chrono = { version = "0.4", features = ["serde"] }
-frunk = { version = "0.4", optional = true }
+async-trait = "0.1.89"
+axum = { version = "0.8.9", features = ["multipart"] }
+axum-extra = { version = "0.12.6", features = ["cookie", "query"] }
+base64 = "0.22.1"
+bytes = "1.12.0"
+chrono = { version = "0.4.45", features = ["serde"] }
+frunk = { version = "0.5.0", optional = true }
 frunk-enum-core = { version = "0.3", optional = true }
 frunk-enum-derive = { version = "0.3", optional = true }
-frunk_core = { version = "0.4", optional = true }
-frunk_derives = { version = "0.4", optional = true }
-http = "1"
-lazy_static = "1"
-regex = "1"
-serde = { version = "1", features = ["derive"] }
-serde_html_form = "0.2"
-serde_json = { version = "1", features = ["raw_value"] }
-tokio = { version = "1", default-features = false, features = [
+frunk_core = { version = "0.5.0", optional = true }
+frunk_derives = { version = "0.5.0", optional = true }
+http = "1.4.2"
+lazy_static = "1.5.0"
+regex = "1.12.4"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_html_form = "0.4.1"
+serde_json = { version = "1.0.150", features = ["raw_value"] }
+tokio = { version = "1.52.3", default-features = false, features = [
     "signal",
     "rt-multi-thread",
 ] }
-tracing = { version = "0.1", features = ["attributes"] }
-uuid = { version = "1", features = ["serde"] }
+tracing = { version = "0.1.44", features = ["attributes"] }
+uuid = { version = "1.23.4", features = ["serde"] }
 validator = { version = "0.20", features = ["derive"] }
 
 [dev-dependencies]
-tracing-subscriber = "0.3"
+tracing-subscriber = "0.3.23"
