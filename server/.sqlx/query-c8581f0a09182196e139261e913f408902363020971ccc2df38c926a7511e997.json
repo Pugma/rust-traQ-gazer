@@ -9,7 +9,8 @@
         "type_info": {
           "type": "LongLong",
           "flags": "NOT_NULL | PRIMARY_KEY | AUTO_INCREMENT",
-          "max_size": 8
+          "max_size": 8,
+          "collation": 63
         }
       },
       {
@@ -18,7 +19,8 @@
         "type_info": {
           "type": "String",
           "flags": "NOT_NULL | UNIQUE_KEY | BINARY | NO_DEFAULT_VALUE",
-          "max_size": 16
+          "max_size": 16,
+          "collation": 63
         }
       },
       {
@@ -27,7 +29,8 @@
         "type_info": {
           "type": "LongLong",
           "flags": "NOT_NULL | MULTIPLE_KEY | NO_DEFAULT_VALUE",
-          "max_size": 8
+          "max_size": 8,
+          "collation": 63
         }
       },
       {
@@ -36,7 +39,8 @@
         "type_info": {
           "type": "VarString",
           "flags": "NOT_NULL | NO_DEFAULT_VALUE",
-          "max_size": 200
+          "max_size": 200,
+          "collation": 45
         }
       },
       {
@@ -45,7 +49,8 @@
         "type_info": {
           "type": "Tiny",
           "flags": "NOT_NULL | NO_DEFAULT_VALUE",
-          "max_size": 1
+          "max_size": 1,
+          "collation": 63
         }
       },
       {
@@ -54,7 +59,8 @@
         "type_info": {
           "type": "Blob",
           "flags": "",
-          "max_size": 16777216
+          "max_size": 16777216,
+          "collation": 45
         }
       }
     ],
