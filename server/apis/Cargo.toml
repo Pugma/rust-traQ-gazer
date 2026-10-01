@@ -20,7 +20,7 @@ conversion = [
 async-trait = "0.1.89"
 axum = { version = "0.8.9", features = ["multipart"] }
 axum-extra = { version = "0.12.6", features = ["cookie", "query"] }
-base64 = "0.22.1"
+base64 = "0.23.1"
 bytes = "1.12.0"
 chrono = { version = "0.4.45", features = ["serde"] }
 frunk = { version = "0.5.0", optional = true }
